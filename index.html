@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Shop Food Delivery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f8f9fa;
+            padding-bottom: 80px; /* เว้นที่ให้ปุ่มตะกร้า */
+        }
+        .header-cover {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            padding: 30px 20px;
+            border-radius: 0 0 25px 25px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .category-pill {
+            cursor: pointer;
+            border-radius: 50px;
+            padding: 8px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .category-pill.active {
+            background-color: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+        }
+        .category-scroll {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .product-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:active {
+            transform: scale(0.98);
+        }
+        .product-img {
+            height: 150px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .product-body {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .price-tag {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .cart-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background: #333;
+            color: white;
+            border-radius: 50px;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            cursor: pointer;
+            display: none; /* ซ่อนก่อนถ้าไม่มีของ */
+        }
+        .cart-bar:active {
+            transform: translateX(-50%) scale(0.98);
+        }
+        .qty-control {
+            display: flex;
+            align-items: center;
+            background: #f1f1f1;
+            border-radius: 10px;
+            padding: 2px;
+        }
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-cover text-center">
+        <h2 class="fw-bold"><i class="fas fa-utensils me-2"></i>Mini Shop</h2>
+        <p class="mb-0 opacity-75">สั่งอาหารอร่อย ส่งตรงถึงมือคุณ</p>
+        <div id="profile-info" class="mt-3 d-none">
+            <img id="user-img" src="" class="rounded-circle border border-2 border-white" width="50" height="50">
+            <span id="user-name" class="ms-2 fw-bold"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="category-scroll mb-4" id="category-container">
+            <span class="category-pill active" onclick="filterProduct('all')">ทั้งหมด</span>
+            </div>
+
+        <div class="row g-3" id="product-list">
+            <div class="col-12 text-center mt-5">
+                <div class="spinner-border text-secondary" role="status"></div>
+                <p class="mt-2 text-muted">กำลังโหลดเมนูอร่อยๆ...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="cart-bar" id="cart-bar" onclick="openCartModal()">
+        <div class="d-flex align-items-center">
+            <div class="bg-white text-dark rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 35px; height: 35px; font-weight:bold;" id="total-qty">0</div>
+            <span>รายการในตะกร้า</span>
+        </div>
+        <div class="fw-bold">
+            <span id="total-price">0</span> ฿
+            <i class="fas fa-chevron-right ms-2"></i>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">สรุปรายการสั่งซื้อ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="cart-items" class="mb-4"></div>
+                    
+                    <div class="bg-light p-3 rounded-3 mb-3">
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>ยอดรวมทั้งสิ้น</span>
+                            <span class="text-danger"><span id="modal-total">0</span> บาท</span>
+                        </div>
+                    </div>
+
+                    <form id="order-form">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i>ข้อมูลจัดส่ง</h6>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">ชื่อผู้รับ</label>
+                            <input type="text" class="form-control" id="form-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">เบอร์โทรศัพท์</label>
+                            <input type="tel" class="form-control" id="form-tel" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">ที่อยู่จัดส่ง</label>
+                            <textarea class="form-control" id="form-address" rows="2" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small">สลิปการโอนเงิน</label>
+                            <input type="file" class="form-control" id="form-slip" accept="image/*" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm" onclick="submitOrder()">
+                        ยืนยันการสั่งซื้อ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ============================================
+        // ⚙️ ตั้งค่าระบบ (แก้ไขตรงนี้!)
+        // ============================================
+        const CONFIG = {
+            LIFF_ID: "YOUR_LIFF_ID_HERE",  // ใส่ LIFF ID ที่ได้จาก LINE Dev
+            EXEC_URL: "YOUR_EXEC_URL_HERE", // ใส่ลิงก์ Web App (Exec) จาก App Script
+            JSON_URL: "YOUR_JSON_URL_HERE"  // ใส่ลิงก์ JSON เมนูอาหาร (จาก Opensheet หรืออื่นๆ)
+        };
+        // ============================================
+
+        let products = [];
+        let cart = {}; // เก็บตะกร้าสินค้า { "ชื่อสินค้า": {price, qty, img} }
+        let userProfile = {};
+
+        // เริ่มทำงานเมื่อโหลดหน้าเว็บ
+        window.onload = async function() {
+            await initLiff();
+            await fetchProducts();
+        };
+
+        // 1. เชื่อมต่อ LIFF
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    userProfile = profile;
+                    document.getElementById('user-img').src = profile.pictureUrl;
+                    document.getElementById('user-name').innerText = 'สวัสดี, ' + profile.displayName;
+                    document.getElementById('profile-info').classList.remove('d-none');
+                    document.getElementById('form-name').value = profile.displayName; // เติมชื่อให้อัตโนมัติ
+                } else {
+                    liff.login();
+                }
+            } catch (err) {
+                console.error('LIFF Init Error:', err);
+            }
+        }
+
+        // 2. ดึงข้อมูลสินค้า
+        async function fetchProducts() {
+            try {
+                const response = await fetch(CONFIG.JSON_URL);
+                const data = await response.json();
+                
+                // แปลงข้อมูลให้เป็น Format ที่เราใช้ง่ายๆ (แก้ key ตาม json ของคุณถ้าไม่ตรง)
+                products = data.map(item => ({
+                    name: item.name || item['Menu'] || item['ชื่อเมนู'], // ลองเดาชื่อ key หลายๆ แบบ
+                    price: item.price || item['Price'] || item['ราคา'],
+                    category: item.category || item['Category'] || item['หมวดหมู่'],
+                    img: item.img || item['Image'] || item['รูปภาพ']
+                })).filter(item => item.name); // เอาเฉพาะตัวที่มีชื่อ
+
+                renderCategories();
+                renderProducts(products);
+
+            } catch (err) {
+                Swal.fire('Error', 'โหลดเมนูไม่สำเร็จ: ' + err.message, 'error');
+            }
+        }
+
+        // 3. แสดงหมวดหมู่
+        function renderCategories() {
+            const categories = [...new Set(products.map(p => p.category))];
+            const container = document.getElementById('category-container');
+            
+            categories.forEach(cat => {
+                const pill = document.createElement('span');
+                pill.className = 'category-pill';
+                pill.innerText = cat;
+                pill.onclick = () => filterProduct(cat);
+                container.appendChild(pill);
+            });
+        }
+
+        // 4. กรองสินค้าตามหมวด
+        function filterProduct(cat) {
+            // จัดการ Active Class
+            document.querySelectorAll('.category-pill').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (cat === 'all') {
+                renderProducts(products);
+            } else {
+                const filtered = products.filter(p => p.category === cat);
+                renderProducts(filtered);
+            }
+        }
+
+        // 5. แสดงสินค้า
+        function renderProducts(list) {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+
+            list.forEach(p => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4 col-lg-3';
+                col.innerHTML = `
+                    <div class="product-card h-100">
+                        <img src="${p.img}" class="product-img" alt="${p.name}" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="product-body">
+                            <h6 class="fw-bold text-dark mb-1">${p.name}</h6>
+                            <div class="d-flex justify-content-between align-items-end mt-2">
+                                <span class="price-tag">${p.price} ฿</span>
+                                <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="addToCart('${p.name}')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(col);
+            });
+        }
+
+        // 6. จัดการตะกร้า
+        function addToCart(name) {
+            const product = products.find(p => p.name === name);
+            if (cart[name]) {
+                cart[name].qty++;
+            } else {
+                cart[name] = { ...product, qty: 1 };
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(name) {
+            if (cart[name]) {
+                cart[name].qty--;
+                if (cart[name].qty <= 0) delete cart[name];
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalQty = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            document.getElementById('total-qty').innerText = totalQty;
+            document.getElementById('total-price').innerText = totalPrice.toLocaleString();
+            document.getElementById('modal-total').innerText = totalPrice.toLocaleString();
+
+            const cartBar = document.getElementById('cart-bar');
+            if (totalQty > 0) {
+                cartBar.style.display = 'flex';
+                // Animation เล็กน้อย
+                cartBar.classList.add('animate__animated', 'animate__bounceInUp');
+            } else {
+                cartBar.style.display = 'none';
+            }
+        }
+
+        function openCartModal() {
+            const modalBody = document.getElementById('cart-items');
+            modalBody.innerHTML = '';
+
+            if (Object.keys(cart).length === 0) {
+                modalBody.innerHTML = '<p class="text-center text-muted">ยังไม่มีสินค้าในตะกร้า</p>';
+            } else {
+                Object.values(cart).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'd-flex justify-content-between align-items-center mb-3 border-bottom pb-2';
+                    div.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <img src="${item.img}" class="rounded" width="50" height="50" style="object-fit:cover;">
+                            <div class="ms-3">
+                                <div class="fw-bold">${item.name}</div>
+                                <div class="text-muted small">${item.price} ฿</div>
+                            </div>
+                        </div>
+                        <div class="qty-control">
+                            <button class="qty-btn text-danger" onclick="removeFromCart('${item.name}'); openCartModal();">-</button>
+                            <span class="mx-2 small fw-bold" style="width:20px; text-align:center;">${item.qty}</span>
+                            <button class="qty-btn text-success" onclick="addToCart('${item.name}'); openCartModal();">+</button>
+                        </div>
+                    `;
+                    modalBody.appendChild(div);
+                });
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('cartModal'));
+            modal.show();
+        }
+
+        // 7. ฟังก์ชันแปลงไฟล์เป็น Base64
+        const fileToBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]); // ตัดส่วน header data:image/.. ออก
+            reader.onerror = error => reject(error);
+        });
+
+        // 8. ส่งข้อมูลการสั่งซื้อ
+        async function submitOrder() {
+            // เช็คข้อมูลครบถ้วน
+            const name = document.getElementById('form-name').value;
+            const tel = document.getElementById('form-tel').value;
+            const address = document.getElementById('form-address').value;
+            const fileInput = document.getElementById('form-slip');
+
+            if (!name || !tel || !address || fileInput.files.length === 0) {
+                Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลและแนบสลิปให้ครบถ้วน', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'กำลังส่งข้อมูล...',
+                text: 'กรุณารอสักครู่ ห้ามปิดหน้าจอ',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                // แปลงรูปเป็น Base64
+                const base64File = await fileToBase64(fileInput.files[0]);
+
+                // เตรียมข้อมูลส่ง
+                const payload = {
+                    uid: userProfile.userId || 'guest',
+                    name: name,
+                    phone: tel,
+                    address: address,
+                    items: JSON.stringify(cart), // ส่งรายการสินค้าไปเป็น Text
+                    total: document.getElementById('modal-total').innerText,
+                    image: base64File, // ไฟล์สลิป
+                    mimeType: fileInput.files[0].type
+                };
+
+                // ส่ง POST ไปยัง Google Script
+                // หมายเหตุ: ใช้ mode 'no-cors' ถ้า script ไม่ได้ return header ที่ถูกต้อง แต่ปกติ text/plain จะ work
+                await fetch(CONFIG.EXEC_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                // สำเร็จ!
+                Swal.fire('สำเร็จ', 'สั่งซื้อเรียบร้อยแล้ว!', 'success').then(() => {
+                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                });
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้ ลองใหม่อีกครั้ง', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
