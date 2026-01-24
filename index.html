@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Shop - Official App</title>
+    <title>Mini Shop - V6.2 Final Stable</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -15,7 +15,6 @@
         :root {
             --primary-color: #667eea;
             --secondary-color: #764ba2;
-            --accent-color: #f39c12;
             --bg-color: #f8f9fa;
         }
 
@@ -35,10 +34,7 @@
             box-shadow: 0 10px 30px rgba(118, 75, 162, 0.2); 
             margin-bottom: 25px;
             position: relative;
-            overflow: hidden;
         }
-        
-        .header-content { position: relative; z-index: 2; }
         
         /* Member Badge */
         .member-badge {
@@ -50,40 +46,6 @@
             align-items: center;
             margin-top: 15px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s;
-        }
-        .member-badge:active { transform: scale(0.98); }
-
-        /* Category Scroll */
-        .category-scroll { 
-            display: flex; 
-            overflow-x: auto; 
-            white-space: nowrap; 
-            padding: 5px 20px 15px; 
-            margin: 0 -12px;
-            scrollbar-width: none; 
-        }
-        .category-scroll::-webkit-scrollbar { display: none; }
-        
-        .category-pill {
-            cursor: pointer; 
-            border-radius: 50px; 
-            padding: 8px 24px; 
-            background: white;
-            border: 1px solid #eee; 
-            margin-right: 12px; 
-            font-size: 0.9rem;
-            color: #666;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-        .category-pill.active {
-            background: var(--secondary-color); 
-            color: white; 
-            border-color: var(--secondary-color);
-            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3); 
-            transform: translateY(-2px);
-            font-weight: 500;
         }
 
         /* Product Cards */
@@ -98,113 +60,72 @@
             display: flex; 
             flex-direction: column;
         }
-        .product-card:active { transform: scale(0.98); }
         .product-img { 
             height: 160px; 
             object-fit: cover; 
             width: 100%;
-            transition: transform 0.5s;
         }
         .product-card.out-of-stock { filter: grayscale(1); opacity: 0.8; }
-        .product-card.out-of-stock .product-img { opacity: 0.5; }
-        
         .stock-badge {
             position: absolute; top: 10px; right: 10px; 
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.6); 
             color: white; padding: 4px 12px; border-radius: 8px; 
-            font-size: 0.7rem; font-weight: 600; z-index: 10;
+            font-size: 0.7rem; z-index: 10;
         }
 
-        /* Floating Cart Bar */
+        /* Category Scroll */
+        .category-scroll { 
+            display: flex; overflow-x: auto; white-space: nowrap; 
+            padding: 5px 20px 15px; scrollbar-width: none; 
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .category-pill {
+            cursor: pointer; border-radius: 50px; padding: 8px 24px; 
+            background: white; border: 1px solid #eee; margin-right: 12px; 
+            transition: all 0.3s ease;
+        }
+        .category-pill.active {
+            background: var(--secondary-color); color: white; 
+            border-color: var(--secondary-color); transform: translateY(-2px);
+        }
+
+        /* Cart Bar */
         .cart-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 500px; 
-            background: #2d3436; 
-            color: white;
-            border-radius: 16px; 
-            padding: 15px 25px; 
+            background: #2d3436; color: white;
+            border-radius: 16px; padding: 15px 25px; 
             display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.25); 
-            z-index: 1000; 
-            cursor: pointer; 
-            display: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .cart-bar:active { transform: translateX(-50%) scale(0.98); }
-
-        /* Staff Dashboard Button */
-        .staff-btn-container { 
-            position: fixed; bottom: 100px; right: 20px; z-index: 999; 
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+            z-index: 1000; cursor: pointer; display: none;
         }
 
-        /* Dashboard Overlay */
+        /* Staff Dashboard */
+        .staff-btn-container { position: fixed; bottom: 100px; right: 20px; z-index: 999; }
         .staff-dashboard-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #f4f6f9; z-index: 2000; overflow-y: auto; display: none;
         }
-        
-        .dashboard-stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        
         .stat-highlight {
             background: linear-gradient(135deg, #00b09b, #96c93d);
-            color: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 25px;
+            color: white; border-radius: 16px; padding: 25px; margin-bottom: 25px;
             box-shadow: 0 10px 20px rgba(0, 176, 155, 0.2);
-        }
-
-        .order-card {
-            background: white; 
-            border-radius: 15px; 
-            padding: 18px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
-            border-left: 5px solid var(--secondary-color);
-        }
-
-        /* Modal Customization */
-        .modal-content { border-radius: 24px; border: none; overflow: hidden; }
-        .modal-header { background: #f8f9fa; border-bottom: 1px solid #eee; padding: 20px 25px; }
-        .form-control { 
-            border-radius: 12px; 
-            padding: 12px 15px; 
-            border: 1px solid #eee;
-            background: #fcfcfc;
-        }
-        .form-control:focus {
-            box-shadow: none; border-color: var(--primary-color); background: white;
-        }
-        
-        /* Loading Spinner Center */
-        .loading-container {
-            display: flex; justify-content: center; align-items: center;
-            height: 200px; flex-direction: column; color: #999;
         }
     </style>
 </head>
 <body>
 
     <div class="header-cover text-center animate__animated animate__fadeIn">
-        <div class="header-content">
-            <h2 class="fw-bold mb-1"><i class="fas fa-store me-2"></i>Mini Shop</h2>
-            <p class="mb-0 opacity-75 small">อาหารอร่อย สดใหม่ทุกวัน</p>
-            
-            <div id="profile-info" class="d-none animate__animated animate__fadeInUp">
-                <div class="member-badge">
-                    <img id="user-img" src="" class="rounded-circle border border-2 border-white me-3" width="45" height="45">
-                    <div class="text-start lh-sm">
-                        <div id="user-name" class="fw-bold text-white small" style="font-size: 0.95rem;">Guest</div>
-                        <div id="user-points" class="text-warning small mt-1" style="font-size: 0.8rem;">
-                            <span class="spinner-border spinner-border-sm opacity-50"></span>
-                        </div>
+        <h2 class="fw-bold mb-1"><i class="fas fa-store me-2"></i>Mini Shop</h2>
+        <p class="mb-0 opacity-75 small">อาหารอร่อย สดใหม่ทุกวัน</p>
+        
+        <div id="profile-info" class="d-none animate__animated animate__fadeInUp">
+            <div class="member-badge">
+                <img id="user-img" src="" class="rounded-circle border border-2 border-white me-3" width="45" height="45">
+                <div class="text-start lh-sm">
+                    <div id="user-name" class="fw-bold text-white small">Guest</div>
+                    <div id="user-points-display" class="text-warning small mt-1">
+                        <span class="spinner-border spinner-border-sm opacity-50"></span>
                     </div>
                 </div>
             </div>
@@ -212,13 +133,11 @@
     </div>
 
     <div class="container">
-        <div class="category-scroll mb-4" id="category-container">
-            </div>
+        <div class="category-scroll mb-4" id="category-container"></div>
 
         <div class="row g-3" id="product-list">
-            <div class="col-12 loading-container">
-                <div class="spinner-border text-primary mb-3" role="status"></div>
-                <small>กำลังโหลดเมนูอร่อยๆ...</small>
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary"></div><br>กำลังโหลด...
             </div>
         </div>
     </div>
@@ -232,20 +151,19 @@
 
     <div id="staff-dashboard" class="staff-dashboard-overlay animate__animated animate__slideInUp">
         <div class="bg-white p-3 sticky-top shadow-sm d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-cogs me-2"></i>Dashboard</h5>
-            <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-danger" onclick="hideStaffDashboard()">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-cogs me-2"></i>Dashboard</h5>
+            <button class="btn btn-sm btn-light text-danger fw-bold" onclick="hideStaffDashboard()">
                 <i class="fas fa-times"></i> ปิด
             </button>
         </div>
         
         <div class="container mt-4 pb-5">
             <div id="owner-stats" class="stat-highlight">
-                <h5 class="fw-bold mb-4 opacity-75"><i class="fas fa-chart-line me-2"></i>สรุปยอดขายวันนี้</h5>
+                <h5 class="fw-bold mb-4 opacity-75">สรุปยอดขายวันนี้</h5>
                 <div class="row text-center">
                     <div class="col-6 border-end border-white border-opacity-25">
                         <small class="d-block opacity-75 mb-1">ยอดขายรวม</small>
-                        <span class="fw-bold fs-3" id="stat-today">0</span>
-                        <span class="small">฿</span>
+                        <span class="fw-bold fs-3" id="stat-today">0</span> ฿
                     </div>
                     <div class="col-6">
                         <small class="d-block opacity-75 mb-1">ออเดอร์</small>
@@ -254,14 +172,14 @@
                 </div>
             </div>
 
-            <div class="dashboard-stat-card">
-                <h6 class="fw-bold mb-3 text-muted">🏆 5 อันดับเมนูขายดี</h6>
+            <div class="bg-white rounded-4 p-3 shadow-sm mb-4">
+                <h6 class="fw-bold mb-3 text-muted">🏆 เมนูขายดี Top 5</h6>
                 <ul id="stat-top-menu" class="list-unstyled mb-0 small ps-2">
                     <li class="text-center text-muted py-3">กำลังโหลดข้อมูล...</li>
                 </ul>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold m-0 text-muted">รายการล่าสุด</h6>
                 <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="refreshDashboard()">
                     <i class="fas fa-sync-alt me-1"></i> รีเฟรช
@@ -278,15 +196,15 @@
             <span class="fw-bold">ตะกร้าสินค้า</span>
         </div>
         <div class="fw-bold fs-5">
-            <span id="total-price">0</span> <small style="font-size: 0.8rem;">฿</small> 
-            <i class="fas fa-chevron-right ms-2 opacity-50" style="font-size: 0.9rem;"></i>
+            <span id="total-price">0</span> <small>฿</small> 
+            <i class="fas fa-chevron-right ms-2 opacity-50"></i>
         </div>
     </div>
 
     <div class="modal fade" id="cartModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content shadow-lg">
-                <div class="modal-header">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0">
                     <h5 class="modal-title fw-bold"><i class="fas fa-shopping-basket me-2"></i>สรุปรายการ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -298,29 +216,26 @@
                         <span class="fs-4 fw-bold text-primary"><span id="modal-total">0</span> ฿</span>
                     </div>
 
-                    <form id="order-form" class="row g-3">
-                        <div class="col-12"><h6 class="fw-bold text-muted mb-0">ข้อมูลจัดส่ง</h6></div>
-                        <div class="col-6">
-                            <input type="text" class="form-control" id="form-name" placeholder="ชื่อผู้รับ" required>
+                    <form id="order-form">
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1">ชื่อผู้รับ</label>
+                            <input type="text" class="form-control" id="form-name" required>
                         </div>
-                        <div class="col-6">
-                            <input type="tel" class="form-control" id="form-tel" placeholder="เบอร์โทรติดต่อ" required>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1">เบอร์โทร</label>
+                            <input type="tel" class="form-control" id="form-tel" required>
                         </div>
-                        <div class="col-12">
-                            <textarea class="form-control" id="form-address" rows="2" placeholder="ที่อยู่จัดส่ง / จุดสังเกต" required></textarea>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1">ที่อยู่จัดส่ง</label>
+                            <textarea class="form-control" id="form-address" rows="2" required></textarea>
                         </div>
-                        
-                        <div class="col-12 mt-4">
-                            <h6 class="fw-bold text-muted mb-2">หลักฐานการโอนเงิน <span class="text-danger">*</span></h6>
-                            <div class="input-group">
-                                <input type="file" class="form-control" id="form-slip" accept="image/*" required>
-                            </div>
-                            <small class="text-muted"><i class="fas fa-info-circle me-1"></i>ระบบจะบีบอัดรูปให้อัตโนมัติ (รับได้ทุกขนาด)</small>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1 fw-bold text-danger">* หลักฐานการโอนเงิน</label>
+                            <input type="file" class="form-control" id="form-slip" accept="image/*" required>
                         </div>
                     </form>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" id="btn-submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm" onclick="submitOrder()">
+                    
+                    <button type="button" id="btn-submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm mt-2" onclick="submitOrder()">
                         <i class="fas fa-paper-plane me-2"></i>ยืนยันการสั่งซื้อ
                     </button>
                 </div>
@@ -337,7 +252,7 @@
         // ==========================================
         const CONFIG = {
             LIFF_ID: "2008933274-cQhoTxw9",
-            // ⚠️ ต้องเป็น URL ใหม่ล่าสุดจากการ Deploy New Version เท่านั้น
+            // ⚠️ ใส่ URL ที่ได้จากการ Deploy New Version ที่นี่
             EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
         };
 
@@ -354,34 +269,7 @@
             await fetchProducts();
         };
 
-        async function initLiff() {
-            try {
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                if (liff.isLoggedIn()) {
-                    const profile = await liff.getProfile();
-                    userProfile = profile;
-                    
-                    // Setup UI with Profile Data
-                    document.getElementById('user-img').src = profile.pictureUrl;
-                    document.getElementById('user-name').innerText = profile.displayName;
-                    document.getElementById('profile-info').classList.remove('d-none');
-                    document.getElementById('form-name').value = profile.displayName; // Auto-Fill Name
-
-                    // Parallel API Calls for Speed
-                    updateMemberUI(profile.userId, profile.displayName);
-                    checkStaffAccess(profile.userId);
-                } else {
-                    liff.login();
-                }
-            } catch (err) { 
-                console.error('LIFF Error:', err); 
-                Swal.fire('LIFF Error', 'ไม่สามารถเชื่อมต่อกับ LINE ได้', 'error');
-            }
-        }
-
-        // ==========================================
-        //  API HANDLER (UNIVERSAL FETCH)
-        // ==========================================
+        // --- CORE API HANDLER (Universal Fetch) ---
         async function fetchAPI(action, params = {}) {
             try {
                 const url = new URL(CONFIG.EXEC_URL);
@@ -389,7 +277,6 @@
                 Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
                 
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Network response was not ok");
                 return await response.json();
             } catch (error) {
                 console.error("API GET Error:", error);
@@ -402,9 +289,7 @@
                 const response = await fetch(CONFIG.EXEC_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
-                    // Note: Google Apps Script Web App doesn't require Content-Type headers for simple text/plain POSTs
                 });
-                if (!response.ok) throw new Error("Network response was not ok");
                 return await response.json();
             } catch (error) {
                 console.error("API POST Error:", error);
@@ -412,77 +297,93 @@
             }
         }
 
-        // ==========================================
-        //  CORE FEATURES
-        // ==========================================
-        
-        // 1. Products & Categories
+        // --- LIFF & MEMBER SYSTEM ---
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    userProfile = profile;
+                    
+                    document.getElementById('user-img').src = profile.pictureUrl;
+                    document.getElementById('user-name').innerText = profile.displayName;
+                    document.getElementById('profile-info').classList.remove('d-none');
+                    document.getElementById('form-name').value = profile.displayName; // Auto-Fill
+
+                    // Update UI in parallel
+                    updateMemberUI(profile.userId, profile.displayName);
+                    checkStaffAccess(profile.userId);
+                } else {
+                    liff.login();
+                }
+            } catch (err) { console.error('LIFF Error:', err); }
+        }
+
+        async function updateMemberUI(uid, name) {
+            const member = await fetchAPI("getMember", { uid: uid, name: name });
+            if (member && member.points !== undefined) {
+                let rankIcon = member.rank === 'VIP' ? '⭐' : (member.rank === 'Super VIP' ? '👑' : '🪙');
+                document.getElementById('user-points-display').innerHTML = 
+                    `${rankIcon} ${member.rank} | <b>${member.points}</b> แต้ม`;
+            } else {
+                document.getElementById('user-points-display').innerHTML = "เริ่มสะสมแต้มกันเถอะ!";
+            }
+        }
+
+        async function checkStaffAccess(uid) {
+            const res = await fetchAPI("checkStaff", { uid: uid });
+            if (res && res.isStaff) document.getElementById('staff-entry').classList.remove('d-none');
+        }
+
+        // --- PRODUCT & CART SYSTEM ---
         async function fetchProducts() {
             const data = await fetchAPI("getProducts");
             if (data) {
-                // Filter invalid items
                 products = data.map(item => ({
                     name: item.name || item['Menu'],
                     price: parseFloat(item.price || item['Price']),
                     category: item.category || item['Category'],
                     img: item.img || item['Image'],
                     inStock: String(item.InStock).toLowerCase() === 'true'
-                })).filter(item => item.name && !isNaN(item.price));
+                })).filter(i => i.name && !isNaN(i.price));
                 
                 renderCategories();
                 renderProducts(products);
-            } else {
-                document.getElementById('product-list').innerHTML = `
-                    <div class="col-12 text-center py-5 text-muted">
-                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i><br>ไม่สามารถโหลดเมนูได้
-                    </div>`;
             }
         }
 
         function renderCategories() {
             const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
             const container = document.getElementById('category-container');
-            
-            // Generate HTML
             let html = '<span class="category-pill active" onclick="filterProduct(\'all\', event)">ทั้งหมด</span>';
-            categories.forEach(cat => {
-                html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`;
-            });
+            categories.forEach(cat => { html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`; });
             container.innerHTML = html;
         }
 
         function filterProduct(cat, event) {
-            // Update Active Pill
             document.querySelectorAll('.category-pill').forEach(el => el.classList.remove('active'));
             event.target.classList.add('active');
-            
-            // Filter Data
             const filtered = (cat === 'all') ? products : products.filter(p => p.category === cat);
             renderProducts(filtered);
         }
 
         function renderProducts(list) {
             const container = document.getElementById('product-list');
-            if (list.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center py-5 text-muted">ไม่พบสินค้าในหมวดหมู่นี้</div>';
-                return;
-            }
-
+            if (list.length === 0) { container.innerHTML = '<div class="col-12 text-center py-5 text-muted">ไม่พบสินค้า</div>'; return; }
+            
             container.innerHTML = list.map(p => {
-                const isAvailable = p.inStock;
+                const isAvail = p.inStock;
                 return `
                 <div class="col-6 col-md-4 col-lg-3 animate__animated animate__fadeIn">
-                    <div class="product-card ${!isAvailable ? 'out-of-stock' : ''}">
-                        ${!isAvailable ? '<div class="stock-badge">หมด</div>' : ''}
+                    <div class="product-card ${!isAvail ? 'out-of-stock' : ''}">
+                        ${!isAvail ? '<div class="stock-badge">หมด</div>' : ''}
                         <img src="${p.img}" class="product-img" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
-                        <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
-                            <div>
-                                <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.95rem;">${p.name}</h6>
-                                <div class="text-primary fw-bold">${p.price.toLocaleString()} ฿</div>
-                            </div>
-                            <button class="btn btn-sm ${isAvailable ? 'btn-outline-primary' : 'btn-secondary'} rounded-pill w-100 mt-3 fw-bold"
-                                onclick="addToCart('${p.name}')" ${!isAvailable ? 'disabled' : ''}>
-                                ${isAvailable ? '<i class="fas fa-plus me-1"></i> เพิ่มลงตะกร้า' : 'สินค้าหมด'}
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <h6 class="fw-bold text-truncate" style="font-size:0.95rem;">${p.name}</h6>
+                            <div class="text-primary fw-bold mb-2">${p.price.toLocaleString()} ฿</div>
+                            <button class="btn btn-sm ${isAvail ? 'btn-outline-primary' : 'btn-secondary'} w-100 rounded-pill mt-auto fw-bold"
+                                onclick="addToCart('${p.name}')" ${!isAvail ? 'disabled' : ''}>
+                                ${isAvail ? '<i class="fas fa-plus me-1"></i> เพิ่ม' : 'หมด'}
                             </button>
                         </div>
                     </div>
@@ -490,23 +391,19 @@
             }).join('');
         }
 
-        // 2. Cart System
         function addToCart(name) {
             const p = products.find(x => x.name === name);
-            if (!p) return;
-
-            if (cart[name]) cart[name].qty++;
-            else cart[name] = { ...p, qty: 1 };
+            if(cart[name]) cart[name].qty++; else cart[name] = {...p, qty: 1};
             
-            // Animation Feedback
+            // Visual Feedback
             const btn = event.target.closest('button');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> เพิ่มแล้ว';
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
             btn.classList.replace('btn-outline-primary', 'btn-primary');
             setTimeout(() => {
-                btn.innerHTML = originalText;
+                btn.innerHTML = originalHTML;
                 btn.classList.replace('btn-primary', 'btn-outline-primary');
-            }, 800);
+            }, 500);
 
             updateCartUI();
         }
@@ -523,7 +420,7 @@
             const bar = document.getElementById('cart-bar');
             if (qty > 0) {
                 bar.style.display = 'flex';
-                bar.classList.add('animate__bounceInUp');
+                bar.classList.add('animate__fadeInUp');
             } else {
                 bar.style.display = 'none';
             }
@@ -534,21 +431,21 @@
             const items = Object.values(cart);
             
             if (items.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted">ตะกร้าว่างเปล่า</p>';
+                container.innerHTML = '<p class="text-center text-muted py-3">ไม่มีสินค้าในตะกร้า</p>';
             } else {
-                container.innerHTML = items.map(item => `
+                container.innerHTML = items.map(i => `
                     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
                         <div class="d-flex align-items-center">
-                            <img src="${item.img}" class="rounded-3 shadow-sm" width="50" height="50" style="object-fit:cover;">
-                            <div class="ms-3">
-                                <div class="fw-bold text-dark">${item.name}</div>
-                                <div class="text-muted small">${item.price} ฿</div>
+                            <img src="${i.img}" width="50" height="50" class="rounded shadow-sm me-3" style="object-fit:cover;">
+                            <div>
+                                <div class="fw-bold small text-dark">${i.name}</div>
+                                <div class="text-muted small">${i.price} ฿</div>
                             </div>
                         </div>
-                        <div class="bg-light rounded-pill px-3 py-1 border d-flex align-items-center">
-                            <i class="fas fa-minus text-secondary p-2" style="cursor:pointer" onclick="changeQty('${item.name}', -1)"></i>
-                            <span class="mx-2 fw-bold">${item.qty}</span>
-                            <i class="fas fa-plus text-primary p-2" style="cursor:pointer" onclick="changeQty('${item.name}', 1)"></i>
+                        <div class="bg-light rounded-pill px-2 py-1 border d-flex align-items-center">
+                            <i class="fas fa-minus p-2 text-secondary" style="cursor:pointer" onclick="changeQty('${i.name}', -1)"></i>
+                            <span class="mx-2 fw-bold small">${i.qty}</span>
+                            <i class="fas fa-plus p-2 text-primary" style="cursor:pointer" onclick="changeQty('${i.name}', 1)"></i>
                         </div>
                     </div>`).join('');
             }
@@ -556,72 +453,38 @@
         }
 
         function changeQty(name, delta) {
-            if (cart[name]) {
-                cart[name].qty += delta;
-                if (cart[name].qty <= 0) delete cart[name];
-                updateCartUI();
-                openCartModal(); // Refresh modal content
-            }
+            if (cart[name]) { cart[name].qty += delta; if (cart[name].qty <= 0) delete cart[name]; updateCartUI(); openCartModal(); }
         }
 
-        // 3. Member & Staff System
-        async function updateMemberUI(uid, name) {
-            const member = await fetchAPI("getMember", { uid: uid, name: name });
-            if (member) {
-                let rankText = 'Member';
-                let colorClass = 'text-warning';
-                
-                if (member.rank === 'VIP') { rankText = '⭐ VIP'; colorClass = 'text-info'; }
-                else if (member.rank === 'Super VIP') { rankText = '👑 Super VIP'; colorClass = 'text-warning'; }
-                
-                document.getElementById('user-points').innerHTML = 
-                    `<span class="${colorClass} fw-bold">${rankText}</span> | แต้มสะสม: <b>${member.points}</b>`;
-            }
-        }
-
-        async function checkStaffAccess(uid) {
-            const res = await fetchAPI("checkStaff", { uid: uid });
-            if (res && res.isStaff) {
-                document.getElementById('staff-entry').classList.remove('d-none');
-            }
-        }
-
-        // 4. Submit Order (Logic หัวใจสำคัญ)
+        // --- SUBMIT ORDER (FINAL FIX) ---
         async function submitOrder() {
             const name = document.getElementById('form-name').value;
             const tel = document.getElementById('form-tel').value;
             const address = document.getElementById('form-address').value;
             const fileInput = document.getElementById('form-slip');
 
-            // Validation
             if (!name || !tel || !address || fileInput.files.length === 0) {
-                return Swal.fire({
-                    icon: 'warning',
-                    title: 'ข้อมูลไม่ครบถ้วน',
-                    text: 'กรุณากรอกข้อมูลให้ครบและแนบสลิปโอนเงิน',
-                    confirmButtonText: 'ตกลง'
-                });
+                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกข้อมูลให้ครบและแนบสลิป', 'warning');
             }
 
             const btn = document.getElementById('btn-submit');
             
             try {
-                // UI Loading State
+                // UI Loading
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังประมวลผล...';
                 
                 Swal.fire({
                     title: 'กำลังส่งออเดอร์',
-                    html: 'ระบบกำลังบีบอัดรูปและส่งข้อมูล<br>กรุณารอสักครู่ ห้ามปิดหน้าจอ',
+                    html: 'ระบบกำลังทำงาน...<br>กรุณารอสักครู่ ห้ามปิดหน้าจอ',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
 
-                // Prepare Data
-                const compressedImage = await compressImage(fileInput.files[0]);
+                // Compress & Send
+                const compressed = await compressImage(fileInput.files[0]);
                 const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
-                
-                // API Call
+
                 const result = await postAPI({
                     action: "submitOrder",
                     uid: userProfile.userId || 'guest',
@@ -630,134 +493,33 @@
                     address: address,
                     items: itemsText,
                     total: document.getElementById('modal-total').innerText,
-                    image: compressedImage,
+                    image: compressed,
                     mimeType: 'image/jpeg'
                 });
 
-                // Check Result
                 if (result.result === "Success") {
-                    // Update Points UI Instantly
+                    // Refresh Points
                     if (userProfile.userId) updateMemberUI(userProfile.userId, userProfile.displayName);
                     
                     await Swal.fire({
                         icon: 'success',
-                        title: 'สั่งซื้อสำเร็จ!',
-                        text: 'ทางร้านได้รับออเดอร์แล้ว ขอบคุณครับ',
+                        title: 'สำเร็จ!',
+                        text: 'ทางร้านได้รับออเดอร์เรียบร้อยแล้ว',
                         confirmButtonText: 'ปิดหน้าต่าง'
                     });
                     
                     liff.closeWindow();
                 } else {
-                    throw new Error(result.message || "Unknown Error from Server");
+                    throw new Error(result.message || "Unknown Error");
                 }
-
             } catch (e) {
                 console.error(e);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>ยืนยันการสั่งซื้อ';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: 'ไม่สามารถส่งออเดอร์ได้: ' + e.message
-                });
+                Swal.fire('เกิดข้อผิดพลาด', 'ส่งข้อมูลไม่สำเร็จ: ' + e.message, 'error');
             }
         }
 
-        // 5. Dashboard Logic
-        async function refreshDashboard() {
-            const btn = event?.target?.closest('button');
-            if(btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
-            
-            await Promise.all([loadOwnerStats(), loadAdminOrders()]);
-            
-            if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> รีเฟรช'; }
-        }
-
-        async function loadOwnerStats() {
-            const stats = await fetchAPI("getOwnerStats");
-            if (stats) {
-                document.getElementById('stat-today').innerText = stats.todaySales.toLocaleString();
-                document.getElementById('stat-orders').innerText = stats.totalOrders.toLocaleString();
-                
-                const list = document.getElementById('stat-top-menu');
-                if (stats.topMenus.length === 0) {
-                    list.innerHTML = '<li class="text-center text-muted py-2">ยังไม่มีข้อมูลการขาย</li>';
-                } else {
-                    list.innerHTML = stats.topMenus.map((item, i) => `
-                        <li class="d-flex justify-content-between border-bottom py-2">
-                            <span><span class="badge bg-light text-dark me-2 border">${i+1}</span>${item.name}</span>
-                            <span class="fw-bold text-success">${item.count}</span>
-                        </li>`).join('');
-                }
-            }
-        }
-
-        async function loadAdminOrders() {
-            const orders = await fetchAPI("getAdminOrders");
-            const container = document.getElementById('admin-order-list');
-            
-            if (!orders || orders.length === 0) {
-                container.innerHTML = '<div class="text-center text-muted py-4">ไม่มีรายการออเดอร์</div>';
-                return;
-            }
-
-            container.innerHTML = orders.map(order => {
-                let badgeClass = 'bg-secondary';
-                if (order['Status'] === 'รอดำเนินการ') badgeClass = 'bg-warning text-dark';
-                else if (order['Status'] === 'กำลังจัดส่ง') badgeClass = 'bg-info text-white';
-                else if (order['Status'] === 'เสร็จสิ้น') badgeClass = 'bg-success text-white';
-
-                return `
-                <div class="order-card animate__animated animate__fadeInUp">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge ${badgeClass} rounded-pill px-3">${order['Status']}</span>
-                        <small class="text-muted"><i class="far fa-clock me-1"></i>${order['Timestamp']}</small>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-dark">${order['Name']}</h6>
-                        <span class="fw-bold text-primary">${order['Total']}฿</span>
-                    </div>
-                    <p class="small text-muted mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${order['Address']}</p>
-                    <div class="bg-light p-2 rounded small mb-3 text-secondary border">
-                        ${order['Items']}
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="viewSlip('${order['SlipURL']}')">
-                            <i class="fas fa-receipt me-1"></i> ดูสลิป
-                        </button>
-                        <button class="btn btn-sm btn-dark flex-grow-1" onclick="updateStatus('${order['Order ID']}')">
-                            <i class="fas fa-edit me-1"></i> สถานะ
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        async function updateStatus(orderId) {
-            const { value: status } = await Swal.fire({
-                title: 'อัปเดตสถานะ',
-                input: 'select',
-                inputOptions: {
-                    'กำลังทำอาหาร': '🥣 กำลังทำอาหาร',
-                    'กำลังจัดส่ง': '🛵 กำลังจัดส่ง',
-                    'เสร็จสิ้น': '✅ เสร็จสิ้น',
-                    'ยกเลิก': '❌ ยกเลิก'
-                },
-                inputPlaceholder: 'เลือกสถานะใหม่',
-                showCancelButton: true,
-                confirmButtonText: 'บันทึก',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (status) {
-                Swal.showLoading();
-                await postAPI({ action: "updateStatus", orderId: orderId, newStatus: status });
-                await Swal.fire('เรียบร้อย', 'สถานะถูกอัปเดตแล้ว', 'success');
-                refreshDashboard();
-            }
-        }
-
-        // 6. Utility Functions
         function compressImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -768,30 +530,65 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        
-                        // Smart Resize Logic
-                        const MAX_WIDTH = 800;
-                        let w = img.width;
-                        let h = img.height;
-                        
-                        if (w > MAX_WIDTH) {
-                            h *= MAX_WIDTH / w;
-                            w = MAX_WIDTH;
-                        }
-
-                        canvas.width = w;
-                        canvas.height = h;
+                        const w = Math.min(800, img.width);
+                        const h = img.height * (w / img.width);
+                        canvas.width = w; canvas.height = h;
                         ctx.drawImage(img, 0, 0, w, h);
-                        
-                        // Output as JPEG quality 0.7
                         resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
                     };
                 };
             });
         }
 
+        // --- DASHBOARD HELPERS ---
         function showStaffDashboard() { document.getElementById('staff-dashboard').style.display = 'block'; refreshDashboard(); }
         function hideStaffDashboard() { document.getElementById('staff-dashboard').style.display = 'none'; }
+        
+        async function refreshDashboard() {
+            const stats = await fetchAPI("getOwnerStats");
+            if (stats) {
+                document.getElementById('stat-today').innerText = stats.todaySales.toLocaleString();
+                document.getElementById('stat-orders').innerText = stats.totalOrders.toLocaleString();
+                
+                const list = document.getElementById('stat-top-menu');
+                if (stats.topMenus.length === 0) list.innerHTML = '<li class="text-center text-muted py-2">ไม่มีข้อมูล</li>';
+                else list.innerHTML = stats.topMenus.map((item, i) => `
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span><span class="badge bg-secondary me-2">${i+1}</span>${item.name}</span>
+                        <span class="fw-bold text-success">${item.count}</span>
+                    </li>`).join('');
+            }
+            
+            const orders = await fetchAPI("getAdminOrders");
+            const container = document.getElementById('admin-order-list');
+            if (orders) {
+                container.innerHTML = orders.map(o => `
+                    <div class="bg-white p-3 rounded-3 shadow-sm mb-3 border-start border-4 border-primary">
+                        <div class="d-flex justify-content-between mb-2"><span class="badge bg-info text-dark">${o['Status']}</span><small class="text-muted">${o['Timestamp']}</small></div>
+                        <h6 class="fw-bold mb-1">${o['Name']} (${o['Total']}฿)</h6>
+                        <div class="small text-muted mb-2">${o['Items']}</div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="viewSlip('${o['SlipURL']}')">ดูสลิป</button>
+                            <button class="btn btn-sm btn-dark flex-grow-1" onclick="updateStatus('${o['Order ID']}')">เปลี่ยนสถานะ</button>
+                        </div>
+                    </div>`).join('');
+            }
+        }
+        
+        async function updateStatus(orderId) {
+            const { value: status } = await Swal.fire({
+                title: 'เปลี่ยนสถานะ', input: 'select',
+                inputOptions: { 'กำลังทำอาหาร': 'กำลังทำอาหาร', 'กำลังจัดส่ง': 'กำลังจัดส่ง', 'เสร็จสิ้น': 'เสร็จสิ้น', 'ยกเลิก': 'ยกเลิก' },
+                showCancelButton: true
+            });
+            if (status) {
+                Swal.showLoading();
+                await postAPI({ action: "updateStatus", orderId: orderId, newStatus: status });
+                Swal.fire('เรียบร้อย', '', 'success');
+                refreshDashboard();
+            }
+        }
+        
         function viewSlip(url) { 
             if(!url || url === "undefined") return Swal.fire('ไม่พบสลิป', '', 'info');
             Swal.fire({ imageUrl: url, imageAlt: 'Slip', showCloseButton: true, showConfirmButton: false, width: '90%' }); 
