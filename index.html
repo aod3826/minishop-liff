@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Shop - V3.1 Stable</title>
+    <title>Mini Shop - V4.0 Ultimate (Auto Compress)</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
@@ -153,7 +153,7 @@
                                 <textarea class="form-control rounded-3" id="form-address" rows="2" required></textarea>
                             </div>
                             <div class="col-12 mb-3">
-                                <label class="small text-muted fw-bold text-danger">* สลิปการโอนเงิน</label>
+                                <label class="small text-muted fw-bold text-danger">* สลิปการโอนเงิน (รองรับทุกขนาด)</label>
                                 <input type="file" class="form-control rounded-3" id="form-slip" accept="image/*" required>
                             </div>
                         </div>
@@ -173,7 +173,7 @@
 
     <script>
         // ================= CONFIGURATION =================
-        // ห้ามเอาขอเป็นอันขาด (ตามคำสั่ง)
+        // ✅ ค่าจริงของคุณ (ห้ามเอาออกเป็นอันขาด)
         const CONFIG = {
             LIFF_ID: "2008933274-cQhoTxw9",
             EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec",
@@ -214,7 +214,6 @@
 
         async function fetchProducts() {
             try {
-                // ใช้ JSON_URL ในการดึงข้อมูลเมนู
                 const response = await fetch(CONFIG.JSON_URL);
                 const data = await response.json();
                 
@@ -331,7 +330,41 @@
             }
         }
 
-        // --- แก้ไขระบบ Submit ให้ไม่ค้าง ---
+        // --- ระบบบีบอัดรูปภาพอัจฉริยะ (V4.0) ---
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // ปรับขนาดรูป (Max Width 800px)
+                        const MAX_WIDTH = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // แปลงเป็น Base64 แบบ JPEG Quality 0.7
+                        resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        }
+
         async function submitOrder() {
             const name = document.getElementById('form-name').value;
             const tel = document.getElementById('form-tel').value;
@@ -347,58 +380,45 @@
             try {
                 // UI Loading
                 btn.disabled = true;
-                btn.innerText = 'กำลังส่งข้อมูล...';
+                btn.innerText = 'กำลังบีบอัดไฟล์...'; // แจ้งสถานะ
                 Swal.fire({
                     title: 'กำลังส่งข้อมูล...',
-                    text: 'กรุณารอสักครู่ (อาจใช้เวลา 10-15 วินาที)',
+                    text: 'ระบบกำลังปรับปรุงรูปสลิปให้คมชัดและส่งได้รวดเร็ว',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
 
-                const reader = new FileReader();
-                reader.readAsDataURL(fileInput.files[0]);
-                
-                reader.onload = async () => {
-                    try {
-                        const base64 = reader.result.split(',')[1];
-                        const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
-                        
-                        const payload = {
-                            uid: userProfile.userId || 'guest',
-                            name: name,
-                            phone: tel,
-                            address: address,
-                            items: itemsText,
-                            total: document.getElementById('modal-total').innerText,
-                            image: base64,
-                            mimeType: fileInput.files[0].type
-                        };
+                // ✅ เรียกใช้การบีบอัดรูป (รอจนเสร็จ)
+                const compressedBase64 = await compressImage(fileInput.files[0]);
+                const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
 
-                        // ใช้ EXEC_URL สำหรับการส่งข้อมูล และรอคำตอบ (Await)
-                        const response = await fetch(CONFIG.EXEC_URL, {
-                            method: 'POST',
-                            body: JSON.stringify(payload)
-                        });
-
-                        const resultText = await response.text();
-
-                        // ตรวจสอบคำตอบ
-                        if (resultText.includes("Success")) {
-                            Swal.fire('สำเร็จ!', 'ออเดอร์ถูกส่งเรียบร้อยแล้ว', 'success')
-                                .then(() => liff.closeWindow());
-                        } else {
-                            throw new Error(resultText); // ส่งต่อ Error ไป catch
-                        }
-                    } catch (error) {
-                        console.error(error);
-                        btn.disabled = false;
-                        btn.innerText = 'ยืนยันการสั่งซื้อ';
-                        Swal.fire('เกิดข้อผิดพลาด', 'Server ตอบกลับ: ' + error.message, 'error');
-                    }
+                const payload = {
+                    uid: userProfile.userId || 'guest',
+                    name: name,
+                    phone: tel,
+                    address: address,
+                    items: itemsText,
+                    total: document.getElementById('modal-total').innerText,
+                    image: compressedBase64, // ส่งรูปที่บีบอัดแล้ว
+                    mimeType: 'image/jpeg'   // บังคับเป็น JPEG
                 };
-                reader.onerror = () => { throw new Error("อ่านไฟล์รูปภาพไม่สำเร็จ"); };
+
+                const response = await fetch(CONFIG.EXEC_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+
+                const resultText = await response.text();
+
+                if (resultText.includes("Success")) {
+                    Swal.fire('สำเร็จ!', 'ออเดอร์ถูกส่งเรียบร้อยแล้ว', 'success')
+                        .then(() => liff.closeWindow());
+                } else {
+                    throw new Error(resultText);
+                }
 
             } catch (e) {
+                console.error(e);
                 btn.disabled = false;
                 btn.innerText = 'ยืนยันการสั่งซื้อ';
                 Swal.fire('Error', 'การส่งข้อมูลล้มเหลว: ' + e.message, 'error');
