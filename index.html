@@ -183,7 +183,7 @@
                 </button>
             </div>
             <div id="admin-order-list">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -415,34 +415,68 @@
             }
 
             const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerText = 'กำลังส่งข้อมูล...';
             
             try {
+                // UI Loading
+                btn.disabled = true;
+                btn.innerText = 'กำลังส่งข้อมูล...';
+                Swal.fire({
+                    title: 'กำลังส่งข้อมูล...',
+                    text: 'กรุณารอสักครู่ ห้ามปิดหน้าจอ',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
                 const reader = new FileReader();
                 reader.readAsDataURL(fileInput.files[0]);
+                
                 reader.onload = async () => {
-                    const base64 = reader.result.split(',')[1];
-                    const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
-                    
-                    const payload = {
-                        uid: userProfile.userId || 'guest',
-                        name: name, phone: tel, address: address,
-                        items: itemsText,
-                        total: document.getElementById('modal-total').innerText,
-                        image: base64, mimeType: fileInput.files[0].type
-                    };
+                    try {
+                        const base64 = reader.result.split(',')[1];
+                        const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
+                        
+                        const payload = {
+                            uid: userProfile.userId || 'guest',
+                            name: name,
+                            phone: tel,
+                            address: address,
+                            items: itemsText,
+                            total: document.getElementById('modal-total').innerText,
+                            image: base64,
+                            mimeType: fileInput.files[0].type
+                        };
 
-                    await fetch(CONFIG.EXEC_URL, {
-                        method: 'POST', body: JSON.stringify(payload)
-                    });
+                        // แก้ไข: รอรับคำตอบจาก Server (await text)
+                        const response = await fetch(CONFIG.EXEC_URL, {
+                            method: 'POST',
+                            body: JSON.stringify(payload)
+                        });
 
-                    Swal.fire('สำเร็จ!', 'ออเดอร์ถูกส่งเรียบร้อยแล้ว', 'success').then(() => liff.closeWindow());
+                        const resultText = await response.text();
+
+                        // ตรวจสอบคำตอบ
+                        if (resultText.includes("Success")) {
+                            Swal.fire('สำเร็จ!', 'ออเดอร์ถูกส่งเรียบร้อยแล้ว', 'success')
+                                .then(() => liff.closeWindow());
+                        } else {
+                            throw new Error(resultText); // ส่งต่อ Error ไป catch
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        btn.disabled = false;
+                        btn.innerText = 'ยืนยันการสั่งซื้อ';
+                        Swal.fire('เกิดข้อผิดพลาด', 'Server ตอบกลับ: ' + error.message, 'error');
+                    }
                 };
+
+                reader.onerror = () => {
+                    throw new Error("อ่านไฟล์รูปภาพไม่สำเร็จ");
+                };
+
             } catch (e) {
                 btn.disabled = false;
                 btn.innerText = 'ยืนยันการสั่งซื้อ';
-                Swal.fire('Error', 'เกิดข้อผิดพลาดในการส่ง', 'error');
+                Swal.fire('Error', 'การส่งข้อมูลล้มเหลว: ' + e.message, 'error');
             }
         }
 
