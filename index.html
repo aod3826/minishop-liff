@@ -59,6 +59,7 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            position: relative; /* เพิ่มสำหรับ Stock Badge */
         }
         .product-card:active {
             transform: scale(0.98);
@@ -67,6 +68,22 @@
             height: 150px;
             object-fit: cover;
             width: 100%;
+        }
+        /* เพิ่ม: สไตล์สำหรับสินค้าหมด */
+        .product-card.out-of-stock {
+            filter: grayscale(1);
+            opacity: 0.6;
+        }
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            z-index: 5;
         }
         .product-body {
             padding: 15px;
@@ -138,7 +155,7 @@
     <div class="container">
         <div class="category-scroll mb-4" id="category-container">
             <span class="category-pill active" onclick="filterProduct('all')">ทั้งหมด</span>
-            </div>
+        </div>
 
         <div class="row g-3" id="product-list">
             <div class="col-12 text-center mt-5">
@@ -197,7 +214,7 @@
                     </form>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm" onclick="submitOrder()">
+                    <button type="button" id="btn-submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm" onclick="submitOrder()">
                         ยืนยันการสั่งซื้อ
                     </button>
                 </div>
@@ -210,12 +227,12 @@
 
     <script>
         // ============================================
-        // ⚙️ ตั้งค่าระบบ (แก้ไขตรงนี้!)
+        // ⚙️ ตั้งค่าระบบ
         // ============================================
         const CONFIG = {
-            LIFF_ID: "2008933274-cQhoTxw9",  // ใส่ LIFF ID ที่ได้จาก LINE Dev
-            EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec", // ใส่ลิงก์ Web App (Exec) จาก App Script
-            JSON_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"  // ใส่ลิงก์ JSON เมนูอาหาร (จาก Opensheet หรืออื่นๆ)
+            LIFF_ID: "2008933274-cQhoTxw9",
+            EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec",
+            JSON_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
         };
         // ============================================
 
@@ -254,13 +271,15 @@
                 const response = await fetch(CONFIG.JSON_URL);
                 const data = await response.json();
                 
-                // แปลงข้อมูลให้เป็น Format ที่เราใช้ง่ายๆ (แก้ key ตาม json ของคุณถ้าไม่ตรง)
+                // แปลงข้อมูลพร้อมเพิ่มการเช็ค InStock
                 products = data.map(item => ({
-                    name: item.name || item['Menu'] || item['ชื่อเมนู'], // ลองเดาชื่อ key หลายๆ แบบ
+                    name: item.name || item['Menu'] || item['ชื่อเมนู'],
                     price: item.price || item['Price'] || item['ราคา'],
                     category: item.category || item['Category'] || item['หมวดหมู่'],
-                    img: item.img || item['Image'] || item['รูปภาพ']
-                })).filter(item => item.name); // เอาเฉพาะตัวที่มีชื่อ
+                    img: item.img || item['Image'] || item['รูปภาพ'],
+                    // เพิ่มเติม: เก็บสถานะสต็อก
+                    inStock: (item.InStock === true || item.InStock === "TRUE")
+                })).filter(item => item.name);
 
                 renderCategories();
                 renderProducts(products);
@@ -275,20 +294,31 @@
             const categories = [...new Set(products.map(p => p.category))];
             const container = document.getElementById('category-container');
             
+            // ล้างหมวดหมู่อื่นๆ ยกเว้น "ทั้งหมด"
+            container.innerHTML = '<span class="category-pill active" onclick="filterProduct(\'all\')">ทั้งหมด</span>';
+            
             categories.forEach(cat => {
+                if(!cat) return;
                 const pill = document.createElement('span');
                 pill.className = 'category-pill';
                 pill.innerText = cat;
-                pill.onclick = () => filterProduct(cat);
+                pill.onclick = (e) => filterProduct(cat, e);
                 container.appendChild(pill);
             });
         }
 
         // 4. กรองสินค้าตามหมวด
-        function filterProduct(cat) {
-            // จัดการ Active Class
+        function filterProduct(cat, event) {
             document.querySelectorAll('.category-pill').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // จัดการเรื่อง Event Target เพื่อเปลี่ยนคลาส Active
+            if(event) {
+                event.target.classList.add('active');
+            } else {
+                // กรณีคลิก 'ทั้งหมด' หรือเรียกจากส่วนอื่น
+                const pills = document.querySelectorAll('.category-pill');
+                pills.forEach(p => { if(p.innerText === cat || (cat==='all' && p.innerText==='ทั้งหมด')) p.classList.add('active'); });
+            }
 
             if (cat === 'all') {
                 renderProducts(products);
@@ -298,7 +328,7 @@
             }
         }
 
-        // 5. แสดงสินค้า
+        // 5. แสดงสินค้า (แก้ไข: เพิ่มการเช็ค Stock UI)
         function renderProducts(list) {
             const container = document.getElementById('product-list');
             container.innerHTML = '';
@@ -306,16 +336,25 @@
             list.forEach(p => {
                 const col = document.createElement('div');
                 col.className = 'col-6 col-md-4 col-lg-3';
+                
+                // ตรวจสอบสต็อกเพื่อกำหนด UI
+                const stockUI = p.inStock ? '' : 'out-of-stock';
+                const badgeUI = p.inStock ? '' : '<div class="stock-badge">สินค้าหมด</div>';
+                const btnUI = p.inStock 
+                    ? `<button class="btn btn-sm btn-outline-danger rounded-circle shadow-sm" onclick="addToCart('${p.name}')">
+                           <i class="fas fa-plus"></i>
+                       </button>`
+                    : `<button class="btn btn-sm btn-secondary rounded-pill" disabled style="font-size:10px">หมด</button>`;
+
                 col.innerHTML = `
-                    <div class="product-card h-100">
+                    <div class="product-card h-100 ${stockUI}">
+                        ${badgeUI}
                         <img src="${p.img}" class="product-img" alt="${p.name}" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="product-body">
-                            <h6 class="fw-bold text-dark mb-1">${p.name}</h6>
+                            <h6 class="fw-bold text-dark mb-1 text-truncate">${p.name}</h6>
                             <div class="d-flex justify-content-between align-items-end mt-2">
-                                <span class="price-tag">${p.price} ฿</span>
-                                <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="addToCart('${p.name}')">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                <span class="price-tag">${parseFloat(p.price).toLocaleString()} ฿</span>
+                                ${btnUI}
                             </div>
                         </div>
                     </div>
@@ -345,7 +384,7 @@
 
         function updateCartUI() {
             const totalQty = Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
-            const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const totalPrice = Object.values(cart).reduce((sum, item) => sum + (parseFloat(item.price) * item.qty), 0);
 
             document.getElementById('total-qty').innerText = totalQty;
             document.getElementById('total-price').innerText = totalPrice.toLocaleString();
@@ -354,8 +393,6 @@
             const cartBar = document.getElementById('cart-bar');
             if (totalQty > 0) {
                 cartBar.style.display = 'flex';
-                // Animation เล็กน้อย
-                cartBar.classList.add('animate__animated', 'animate__bounceInUp');
             } else {
                 cartBar.style.display = 'none';
             }
@@ -376,7 +413,7 @@
                             <img src="${item.img}" class="rounded" width="50" height="50" style="object-fit:cover;">
                             <div class="ms-3">
                                 <div class="fw-bold">${item.name}</div>
-                                <div class="text-muted small">${item.price} ฿</div>
+                                <div class="text-muted small">${parseFloat(item.price).toLocaleString()} ฿</div>
                             </div>
                         </div>
                         <div class="qty-control">
@@ -397,13 +434,12 @@
         const fileToBase64 = file => new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]); // ตัดส่วน header data:image/.. ออก
+            reader.onload = () => resolve(reader.result.split(',')[1]); 
             reader.onerror = error => reject(error);
         });
 
-        // 8. ส่งข้อมูลการสั่งซื้อ
+        // 8. ส่งข้อมูลการสั่งซื้อ (แก้ไข: เพิ่มความปลอดภัยและการจัดรูปแบบข้อมูล)
         async function submitOrder() {
-            // เช็คข้อมูลครบถ้วน
             const name = document.getElementById('form-name').value;
             const tel = document.getElementById('form-tel').value;
             const address = document.getElementById('form-address').value;
@@ -414,6 +450,10 @@
                 return;
             }
 
+            // เพิ่ม: ป้องกันการกดซ้ำ
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.disabled = true;
+
             Swal.fire({
                 title: 'กำลังส่งข้อมูล...',
                 text: 'กรุณารอสักครู่ ห้ามปิดหน้าจอ',
@@ -422,35 +462,34 @@
             });
 
             try {
-                // แปลงรูปเป็น Base64
                 const base64File = await fileToBase64(fileInput.files[0]);
 
-                // เตรียมข้อมูลส่ง
+                // ปรับปรุง: สรุปรายการให้อ่านง่ายใน Google Sheet
+                const orderSummary = Object.values(cart).map(i => `${i.name} (${i.qty})`).join(', ');
+
                 const payload = {
                     uid: userProfile.userId || 'guest',
                     name: name,
                     phone: tel,
                     address: address,
-                    items: JSON.stringify(cart), // ส่งรายการสินค้าไปเป็น Text
+                    items: orderSummary, // ส่งสรุปรายการที่อ่านง่าย
                     total: document.getElementById('modal-total').innerText,
-                    image: base64File, // ไฟล์สลิป
+                    image: base64File,
                     mimeType: fileInput.files[0].type
                 };
 
-                // ส่ง POST ไปยัง Google Script
-                // หมายเหตุ: ใช้ mode 'no-cors' ถ้า script ไม่ได้ return header ที่ถูกต้อง แต่ปกติ text/plain จะ work
                 await fetch(CONFIG.EXEC_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
 
-                // สำเร็จ!
                 Swal.fire('สำเร็จ', 'สั่งซื้อเรียบร้อยแล้ว!', 'success').then(() => {
-                    liff.closeWindow(); // ปิดหน้าต่าง LIFF
+                    liff.closeWindow(); 
                 });
 
             } catch (error) {
                 console.error(error);
+                submitBtn.disabled = false; // ปลดล็อคปุ่มเพื่อให้ลองใหม่
                 Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งข้อมูลได้ ลองใหม่อีกครั้ง', 'error');
             }
         }
