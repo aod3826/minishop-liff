@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Shop - V3.0 Professional</title>
+    <title>Mini Shop - V3.1 Stable</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
@@ -12,130 +12,59 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #f8f9fa;
-            padding-bottom: 100px; /* เว้นที่ให้ปุ่มตะกร้า */
-        }
+        body { font-family: 'Prompt', sans-serif; background-color: #f8f9fa; padding-bottom: 100px; }
         
-        /* --- Header & UI Styles --- */
+        /* Header */
         .header-cover {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px 20px;
-            border-radius: 0 0 30px 30px;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
+            padding: 30px 20px; border-radius: 0 0 30px 30px;
+            color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px;
         }
         
-        /* Category Scroll */
-        .category-scroll {
-            display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 5px 0 15px 0;
-            scrollbar-width: none;
-        }
+        /* Categories */
+        .category-scroll { display: flex; overflow-x: auto; white-space: nowrap; padding: 5px 0 15px 0; scrollbar-width: none; }
         .category-scroll::-webkit-scrollbar { display: none; }
-        
         .category-pill {
-            cursor: pointer;
-            border-radius: 50px;
-            padding: 8px 20px;
-            background: white;
-            border: 1px solid #eee;
-            margin-right: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer; border-radius: 50px; padding: 8px 20px; background: white;
+            border: 1px solid #eee; margin-right: 10px; transition: all 0.3s;
         }
         .category-pill.active {
-            background-color: #764ba2;
-            color: white;
-            border-color: #764ba2;
-            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
-            transform: translateY(-2px);
+            background-color: #764ba2; color: white; border-color: #764ba2;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4); transform: translateY(-2px);
         }
 
-        /* Product Cards */
+        /* Products */
         .product-card {
-            border: none;
-            border-radius: 20px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            border: none; border-radius: 20px; overflow: hidden; background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s; height: 100%;
+            display: flex; flex-direction: column; position: relative;
         }
         .product-card:active { transform: scale(0.98); }
-        .product-img {
-            height: 150px;
-            object-fit: cover;
-            width: 100%;
-        }
-        
-        /* Stock Badge Styles */
-        .product-card.out-of-stock {
-            filter: grayscale(1);
-            opacity: 0.7;
-        }
+        .product-img { height: 150px; object-fit: cover; width: 100%; }
+        .product-card.out-of-stock { filter: grayscale(1); opacity: 0.7; }
         .stock-badge {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            z-index: 10;
+            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7);
+            color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; z-index: 10;
         }
 
         /* Cart Bar */
         .cart-bar {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 500px;
-            background: #1a1a1a;
-            color: white;
-            border-radius: 50px;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            z-index: 1000;
-            cursor: pointer;
-            display: none;
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px; background: #1a1a1a; color: white;
+            border-radius: 50px; padding: 15px 25px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); z-index: 1000;
+            cursor: pointer; display: none;
         }
 
-        /* Staff Dashboard Styles */
-        .staff-btn-container {
-            position: fixed;
-            bottom: 90px; /* อยู่เหนือปุ่มตะกร้า */
-            right: 20px;
-            z-index: 999;
-        }
+        /* Staff Dashboard */
+        .staff-btn-container { position: fixed; bottom: 90px; right: 20px; z-index: 999; }
         .staff-dashboard-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #f0f2f5;
-            z-index: 2000;
-            overflow-y: auto;
-            display: none; /* ซ่อนไว้ก่อน */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f0f2f5; z-index: 2000; overflow-y: auto; display: none;
         }
         .order-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-left: 5px solid #764ba2;
+            background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid #764ba2;
         }
     </style>
 </head>
@@ -156,7 +85,6 @@
         <div class="category-scroll mb-3" id="category-container">
             <span class="category-pill active" onclick="filterProduct('all', event)">ทั้งหมด</span>
         </div>
-
         <div class="row g-3" id="product-list">
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
@@ -182,8 +110,7 @@
                     <i class="fas fa-sync-alt me-1"></i> รีเฟรช
                 </button>
             </div>
-            <div id="admin-order-list">
-            </div>
+            <div id="admin-order-list"></div>
         </div>
     </div>
 
@@ -246,10 +173,11 @@
 
     <script>
         // ================= CONFIGURATION =================
+        // ห้ามเอาขอเป็นอันขาด (ตามคำสั่ง)
         const CONFIG = {
             LIFF_ID: "2008933274-cQhoTxw9",
-            // ⚠️ สำคัญ: ใช้ URL เดียวกับที่คุณ Deploy Code.gs ล่าสุด
-            EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec" 
+            EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec",
+            JSON_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
         };
         // =================================================
 
@@ -270,25 +198,24 @@
                     const profile = await liff.getProfile();
                     userProfile = profile;
                     
-                    // UI: แสดงข้อมูลลูกค้า
                     document.getElementById('user-img').src = profile.pictureUrl;
                     document.getElementById('user-name').innerText = profile.displayName;
                     document.getElementById('profile-info').classList.remove('d-none');
                     document.getElementById('form-name').value = profile.displayName;
 
-                    // STAFF: ตรวจสอบสิทธิ์พนักงาน
                     checkStaffAccess(profile.userId);
                 } else {
                     liff.login();
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error('LIFF Error:', err); }
         }
 
-        // --- ส่วนของลูกค้า (Customer Functions) ---
+        // --- Customer Functions ---
 
         async function fetchProducts() {
             try {
-                const response = await fetch(CONFIG.EXEC_URL); // เรียก doGet
+                // ใช้ JSON_URL ในการดึงข้อมูลเมนู
+                const response = await fetch(CONFIG.JSON_URL);
                 const data = await response.json();
                 
                 products = data.map(item => ({
@@ -404,6 +331,7 @@
             }
         }
 
+        // --- แก้ไขระบบ Submit ให้ไม่ค้าง ---
         async function submitOrder() {
             const name = document.getElementById('form-name').value;
             const tel = document.getElementById('form-tel').value;
@@ -422,7 +350,7 @@
                 btn.innerText = 'กำลังส่งข้อมูล...';
                 Swal.fire({
                     title: 'กำลังส่งข้อมูล...',
-                    text: 'กรุณารอสักครู่ ห้ามปิดหน้าจอ',
+                    text: 'กรุณารอสักครู่ (อาจใช้เวลา 10-15 วินาที)',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
@@ -446,7 +374,7 @@
                             mimeType: fileInput.files[0].type
                         };
 
-                        // แก้ไข: รอรับคำตอบจาก Server (await text)
+                        // ใช้ EXEC_URL สำหรับการส่งข้อมูล และรอคำตอบ (Await)
                         const response = await fetch(CONFIG.EXEC_URL, {
                             method: 'POST',
                             body: JSON.stringify(payload)
@@ -468,10 +396,7 @@
                         Swal.fire('เกิดข้อผิดพลาด', 'Server ตอบกลับ: ' + error.message, 'error');
                     }
                 };
-
-                reader.onerror = () => {
-                    throw new Error("อ่านไฟล์รูปภาพไม่สำเร็จ");
-                };
+                reader.onerror = () => { throw new Error("อ่านไฟล์รูปภาพไม่สำเร็จ"); };
 
             } catch (e) {
                 btn.disabled = false;
@@ -480,15 +405,16 @@
             }
         }
 
-        // --- ส่วนของพนักงาน (Staff Functions) ---
+        // --- Staff Functions ---
 
-        // ตรวจสอบสิทธิ์จาก Code.gs
         function checkStaffAccess(uid) {
-            google.script.run.withSuccessHandler(function(isStaff) {
-                if (isStaff) {
-                    document.getElementById('staff-entry').classList.remove('d-none');
-                }
-            }).checkStaffStatus(uid);
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run.withSuccessHandler(function(isStaff) {
+                    if (isStaff) {
+                        document.getElementById('staff-entry').classList.remove('d-none');
+                    }
+                }).checkStaffStatus(uid);
+            }
         }
 
         function showStaffDashboard() {
@@ -500,86 +426,77 @@
             document.getElementById('staff-dashboard').style.display = 'none';
         }
 
-        // โหลดออเดอร์ทั้งหมด
         function loadAdminOrders() {
             const container = document.getElementById('admin-order-list');
             container.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div><br>กำลังโหลดรายการ...</div>';
             
-            google.script.run.withSuccessHandler(function(orders) {
-                container.innerHTML = '';
-                if(orders.length === 0) {
-                    container.innerHTML = '<p class="text-center text-muted mt-5">ไม่มีรายการออเดอร์</p>';
-                    return;
-                }
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run.withSuccessHandler(function(orders) {
+                    container.innerHTML = '';
+                    if(!orders || orders.length === 0) {
+                        container.innerHTML = '<p class="text-center text-muted mt-5">ไม่มีรายการออเดอร์</p>';
+                        return;
+                    }
 
-                orders.forEach(order => {
-                    // กำหนดสีของสถานะ
-                    let badgeClass = 'bg-secondary';
-                    if (order['Status'] === 'รอดำเนินการ') badgeClass = 'bg-warning text-dark';
-                    else if (order['Status'] === 'กำลังจัดส่ง') badgeClass = 'bg-info text-white';
-                    else if (order['Status'] === 'เสร็จสิ้น') badgeClass = 'bg-success';
+                    orders.forEach(order => {
+                        let badgeClass = 'bg-secondary';
+                        if (order['Status'] === 'รอดำเนินการ') badgeClass = 'bg-warning text-dark';
+                        else if (order['Status'] === 'กำลังจัดส่ง') badgeClass = 'bg-info text-white';
+                        else if (order['Status'] === 'เสร็จสิ้น') badgeClass = 'bg-success';
 
-                    const card = document.createElement('div');
-                    card.className = 'order-card animate__animated animate__fadeInUp';
-                    card.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge ${badgeClass}">${order['Status']}</span>
-                            <small class="text-muted">${order['Timestamp']}</small>
-                        </div>
-                        <h6 class="fw-bold mb-1">${order['Name']} (${order['Total']}฿)</h6>
-                        <p class="small text-muted mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${order['Address']}</p>
-                        <div class="bg-light p-2 rounded small mb-3 text-dark border">
-                            ${order['Items']}
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="viewSlip('${order['SlipURL']}')">
-                                <i class="fas fa-receipt"></i> สลิป
-                            </button>
-                            <div class="dropdown flex-grow-1">
-                                <button class="btn btn-sm btn-dark w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    อัปเดตสถานะ
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'กำลังทำอาหาร')">🥣 กำลังทำอาหาร</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'เสร็จสิ้น')">✅ เสร็จสิ้น</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'กำลังจัดส่ง')">🛵 กำลังจัดส่ง</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus('${order['Order ID']}', 'ยกเลิก')">❌ ยกเลิก</a></li>
-                                </ul>
+                        const card = document.createElement('div');
+                        card.className = 'order-card animate__animated animate__fadeInUp';
+                        card.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge ${badgeClass}">${order['Status']}</span>
+                                <small class="text-muted">${order['Timestamp']}</small>
                             </div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            }).getAdminOrders();
+                            <h6 class="fw-bold mb-1">${order['Name']} (${order['Total']}฿)</h6>
+                            <p class="small text-muted mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${order['Address']}</p>
+                            <div class="bg-light p-2 rounded small mb-3 text-dark border">
+                                ${order['Items']}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="viewSlip('${order['SlipURL']}')">
+                                    <i class="fas fa-receipt"></i> สลิป
+                                </button>
+                                <div class="dropdown flex-grow-1">
+                                    <button class="btn btn-sm btn-dark w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        อัปเดตสถานะ
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'กำลังทำอาหาร')">🥣 กำลังทำอาหาร</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'เสร็จสิ้น')">✅ เสร็จสิ้น</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('${order['Order ID']}', 'กำลังจัดส่ง')">🛵 กำลังจัดส่ง</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus('${order['Order ID']}', 'ยกเลิก')">❌ ยกเลิก</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                }).getAdminOrders();
+            }
         }
 
-        // ดูรูปสลิป
         function viewSlip(url) {
             if(!url) return Swal.fire('ไม่พบสลิป');
             Swal.fire({
-                imageUrl: url,
-                imageAlt: 'Slip',
-                showCloseButton: true,
-                showConfirmButton: false
+                imageUrl: url, imageAlt: 'Slip', showCloseButton: true, showConfirmButton: false
             });
         }
 
-        // อัปเดตสถานะ
         function updateStatus(orderId, status) {
             Swal.fire({
-                title: 'ยืนยันเปลี่ยนสถานะ?',
-                text: `เปลี่ยนเป็น: ${status}`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก'
+                title: 'ยืนยันเปลี่ยนสถานะ?', text: `เปลี่ยนเป็น: ${status}`, icon: 'question',
+                showCancelButton: true, confirmButtonText: 'ตกลง', cancelButtonText: 'ยกเลิก'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({title: 'กำลังบันทึก...', didOpen: ()=>Swal.showLoading()});
                     google.script.run.withSuccessHandler(function(res) {
                         Swal.fire('สำเร็จ', 'อัปเดตสถานะและแจ้งลูกค้าเรียบร้อย', 'success');
-                        loadAdminOrders(); // โหลดข้อมูลใหม่
+                        loadAdminOrders();
                     }).updateOrderStatusFromWeb(orderId, status);
                 }
             });
