@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ร้านน้องดาว - สั่งอาหารออนไลน์</title>
+    <title>Mini Shop - Map Integrated</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -21,10 +21,11 @@
         body { 
             font-family: 'Prompt', sans-serif; 
             background-color: var(--bg-color); 
-            padding-bottom: 140px; 
+            padding-bottom: 120px; 
             color: #333;
         }
 
+        /* Header Section */
         .header-cover {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             padding: 40px 20px 30px; 
@@ -35,6 +36,7 @@
             position: relative;
         }
         
+        /* Member Badge */
         .member-badge {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
@@ -46,6 +48,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        /* Product Cards */
         .product-card {
             border: none; 
             border-radius: 20px; 
@@ -70,6 +73,7 @@
             font-size: 0.7rem; z-index: 10;
         }
 
+        /* Category Scroll */
         .category-scroll { 
             display: flex; overflow-x: auto; white-space: nowrap; 
             padding: 5px 20px 15px; scrollbar-width: none; 
@@ -85,6 +89,7 @@
             border-color: var(--secondary-color); transform: translateY(-2px);
         }
 
+        /* Cart Bar */
         .cart-bar {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 500px; 
@@ -95,8 +100,9 @@
             z-index: 1000; cursor: pointer; display: none;
         }
 
+        /* Staff Dashboard */
         .staff-btn-container { position: fixed; bottom: 100px; right: 20px; z-index: 999; }
-        .staff-dashboard-overlay, .customer-dashboard-overlay {
+        .staff-dashboard-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #f4f6f9; z-index: 2000; overflow-y: auto; display: none;
         }
@@ -106,6 +112,7 @@
             box-shadow: 0 10px 20px rgba(0, 176, 155, 0.2);
         }
 
+        /* --- MAP STYLES --- */
         #map {
             height: 400px;
             width: 100%;
@@ -113,7 +120,7 @@
             margin-top: 10px;
         }
         .pac-container {
-            z-index: 10000 !important;
+            z-index: 10000 !important; /* Fix Google Autocomplete z-index */
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
@@ -122,7 +129,7 @@
 <body>
 
     <div class="header-cover text-center animate__animated animate__fadeIn">
-        <h2 class="fw-bold mb-1"><i class="fas fa-utensils me-2"></i>ร้านน้องดาว</h2>
+        <h2 class="fw-bold mb-1"><i class="fas fa-store me-2"></i>Mini Shop</h2>
         <p class="mb-0 opacity-75 small">อาหารอร่อย สดใหม่ทุกวัน</p>
         
         <div id="profile-info" class="d-none animate__animated animate__fadeInUp">
@@ -135,9 +142,6 @@
                     </div>
                 </div>
             </div>
-            <button onclick="showMyOrders()" class="btn btn-light btn-sm mt-3 rounded-pill px-4 shadow-sm">
-                <i class="fas fa-history me-1"></i> ประวัติการสั่ง
-            </button>
         </div>
     </div>
 
@@ -146,7 +150,7 @@
 
         <div class="row g-3" id="product-list">
             <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary"></div><br>กำลังโหลดเมนู...
+                <div class="spinner-border text-primary"></div><br>กำลังโหลด...
             </div>
         </div>
     </div>
@@ -161,7 +165,7 @@
     <!-- STAFF DASHBOARD -->
     <div id="staff-dashboard" class="staff-dashboard-overlay animate__animated animate__slideInUp">
         <div class="bg-white p-3 sticky-top shadow-sm d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-cogs me-2"></i>แดชบอร์ดแม่ค้า</h5>
+            <h5 class="mb-0 fw-bold"><i class="fas fa-cogs me-2"></i>Dashboard</h5>
             <button class="btn btn-sm btn-light text-danger fw-bold" onclick="hideStaffDashboard()">
                 <i class="fas fa-times"></i> ปิด
             </button>
@@ -169,7 +173,7 @@
         
         <div class="container mt-4 pb-5">
             <div id="owner-stats" class="stat-highlight">
-                <h5 class="fw-bold mb-4 opacity-75">สรุปยอดวันนี้</h5>
+                <h5 class="fw-bold mb-4 opacity-75">สรุปยอดขายวันนี้</h5>
                 <div class="row text-center">
                     <div class="col-6 border-end border-white border-opacity-25">
                         <small class="d-block opacity-75 mb-1">ยอดขายรวม</small>
@@ -185,28 +189,12 @@
             <div class="bg-white rounded-4 p-3 shadow-sm mb-4">
                 <h6 class="fw-bold mb-3 text-muted">🏆 เมนูขายดี Top 5</h6>
                 <ul id="stat-top-menu" class="list-unstyled mb-0 small ps-2">
-                    <li class="text-center text-muted py-3">กำลังโหลด...</li>
+                    <li class="text-center text-muted py-3">กำลังโหลดข้อมูล...</li>
                 </ul>
             </div>
 
-            <div class="row g-2 mb-3">
-                <div class="col-7">
-                    <input type="text" id="order-search" class="form-control" placeholder="ค้นหา Order ID / ชื่อ">
-                </div>
-                <div class="col-5">
-                    <select id="status-filter" class="form-select">
-                        <option value="">ทุกสถานะ</option>
-                        <option value="รอดำเนินการ">รอดำเนินการ</option>
-                        <option value="กำลังทำอาหาร">กำลังทำอาหาร</option>
-                        <option value="กำลังจัดส่ง">กำลังจัดส่ง</option>
-                        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                        <option value="ยกเลิก">ยกเลิก</option>
-                    </select>
-                </div>
-            </div>
-
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold m-0 text-muted">รายการออเดอร์</h6>
+                <h6 class="fw-bold m-0 text-muted">รายการล่าสุด</h6>
                 <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="refreshDashboard()">
                     <i class="fas fa-sync-alt me-1"></i> รีเฟรช
                 </button>
@@ -215,25 +203,11 @@
         </div>
     </div>
 
-    <!-- CUSTOMER ORDERS DASHBOARD -->
-    <div id="my-orders-dashboard" class="customer-dashboard-overlay animate__animated animate__slideInUp">
-        <div class="bg-white p-3 sticky-top shadow-sm d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>ประวัติการสั่งของฉัน</h5>
-            <button class="btn btn-sm btn-light text-danger fw-bold" onclick="hideMyOrders()">
-                <i class="fas fa-times"></i> ปิด
-            </button>
-        </div>
-        
-        <div class="container mt-4 pb-5">
-            <div id="my-order-list"></div>
-        </div>
-    </div>
-
     <div class="cart-bar animate__animated animate__fadeInUp" id="cart-bar" onclick="openCartModal()">
         <div class="d-flex align-items-center">
             <div class="bg-white text-dark rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm fw-bold" 
                  style="width: 36px; height: 36px;" id="total-qty">0</div>
-            <span class="fw-bold">ตะกร้า</span>
+            <span class="fw-bold">ตะกร้าสินค้า</span>
         </div>
         <div class="fw-bold fs-5">
             <span id="total-price">0</span> <small>฿</small> 
@@ -266,6 +240,8 @@
                             <label class="small text-muted mb-1">เบอร์โทร</label>
                             <input type="tel" class="form-control" id="form-tel" required>
                         </div>
+                        
+                        <!-- Address Field with Map Button -->
                         <div class="mb-3">
                             <label class="small text-muted mb-1">ที่อยู่จัดส่ง</label>
                             <div class="input-group">
@@ -274,22 +250,26 @@
                                     <i class="fas fa-map-marker-alt text-danger"></i><br><span style="font-size:0.8rem">ปักหมุด</span>
                                 </button>
                             </div>
+                            <div class="form-text text-muted small ms-1">
+                                <i class="fas fa-info-circle me-1"></i>กดปุ่มปักหมุดเพื่อระบุพิกัดแม่นยำ
+                            </div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="small text-muted mb-1 fw-bold text-danger">* สลิปการโอนเงิน</label>
+                            <label class="small text-muted mb-1 fw-bold text-danger">* หลักฐานการโอนเงิน</label>
                             <input type="file" class="form-control" id="form-slip" accept="image/*" required>
                         </div>
                     </form>
                     
                     <button type="button" id="btn-submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm mt-2" onclick="submitOrder()">
-                        <i class="fas fa-paper-plane me-2"></i>ยืนยันสั่งซื้อ
+                        <i class="fas fa-paper-plane me-2"></i>ยืนยันการสั่งซื้อ
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MAP MODAL -->
+    <!-- MAP MODAL (เพิ่มใหม่) -->
     <div class="modal fade" id="mapModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -298,15 +278,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Search Box -->
                     <div class="input-group mb-2 shadow-sm rounded-pill">
                         <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" id="map-search" class="form-control border-start-0 rounded-end-pill py-2" placeholder="ค้นหาสถานที่...">
+                        <input type="text" id="map-search" class="form-control border-start-0 rounded-end-pill py-2" placeholder="ค้นหา หมู่บ้าน, อาคาร, หรือสถานที่...">
                     </div>
+                    
+                    <!-- Map Container -->
                     <div id="map" class="bg-light d-flex justify-content-center align-items-center text-muted">
                         <div class="spinner-border text-secondary me-2"></div> กำลังโหลดแผนที่...
                     </div>
+                    
                     <div class="text-center mt-3">
-                        <small class="text-danger fw-bold">* ลากหมุด 📍 ไปยังตำแหน่งที่ต้องการ</small>
+                        <small class="text-danger fw-bold">* ลากหมุดสีแดง 📍 ไปยังจุดที่ต้องการส่งสินค้า</small>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -323,36 +307,41 @@
 
     <script>
         // ==========================================
-        // CONFIG
+        //  CONFIG: ตั้งค่าระบบ (ค่าเดิมของคุณ)
         // ==========================================
         const CONFIG = {
             LIFF_ID: "2008933274-cQhoTxw9",
             EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
         };
 
+        // Global Variables
         let products = [];
         let cart = {};
         let userProfile = {};
+        
+        // Maps Variables
         let map, marker, geocoder;
         let isMapLoaded = false;
 
         // ==========================================
-        // INIT
+        //  INITIALIZATION
         // ==========================================
         window.onload = async () => {
             await initLiff();
             await fetchProducts();
         };
 
+        // --- CORE API HANDLER (Universal Fetch) ---
         async function fetchAPI(action, params = {}) {
             try {
                 const url = new URL(CONFIG.EXEC_URL);
                 url.searchParams.append("action", action);
                 Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+                
                 const response = await fetch(url);
                 return await response.json();
             } catch (error) {
-                console.error("API Error:", error);
+                console.error("API GET Error:", error);
                 return null;
             }
         }
@@ -365,14 +354,144 @@
                 });
                 return await response.json();
             } catch (error) {
-                console.error("POST Error:", error);
+                console.error("API POST Error:", error);
                 throw error;
             }
         }
+        
+        // ==========================================
+        //  GOOGLE MAPS LOGIC
+        // ==========================================
+        async function openMapModal() {
+            const modal = new bootstrap.Modal(document.getElementById('mapModal'));
+            modal.show();
 
-        // ==========================================
-        // LIFF + PROFILE
-        // ==========================================
+            if (!isMapLoaded) {
+                try {
+                    // ดึง Key จาก Backend
+                    const res = await fetchAPI("getMapsKey");
+                    if (!res || !res.key) {
+                        document.getElementById('map').innerHTML = '⚠️ ไม่พบ API Key<br>กรุณาตั้งค่า Script Property: MAPS_API_KEY';
+                        return;
+                    }
+
+                    // สร้าง Script Tag แบบ Dynamic
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${res.key}&libraries=places&callback=initMap`;
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                    isMapLoaded = true;
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById('map').innerHTML = 'โหลดแผนที่ล้มเหลว';
+                }
+            }
+        }
+
+        // Callback เมื่อ Google Maps โหลดเสร็จ
+        window.initMap = function() {
+            // พิกัดเริ่มต้น (กรุงเทพฯ)
+            const defaultLocation = { lat: 13.7563, lng: 100.5018 };
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: defaultLocation,
+                zoom: 15,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false
+            });
+
+            geocoder = new google.maps.Geocoder();
+
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP
+            });
+
+            // Event: ลากหมุด
+            marker.addListener("dragend", () => {
+                geocodePosition(marker.getPosition());
+            });
+
+            // Event: คลิกบนแผนที่
+            map.addListener("click", (e) => {
+                marker.setPosition(e.latLng);
+                geocodePosition(e.latLng);
+            });
+
+            initSearchBox();
+            
+            // ขอพิกัดปัจจุบัน (ถ้าทำได้)
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+                        map.setCenter(pos);
+                        marker.setPosition(pos);
+                        geocodePosition(pos);
+                    },
+                    () => { console.log("Geolocation permission denied"); }
+                );
+            }
+        };
+
+        // ระบบค้นหา (Autocomplete)
+        function initSearchBox() {
+            const input = document.getElementById("map-search");
+            const searchBox = new google.maps.places.SearchBox(input);
+
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+                if (places.length == 0) return;
+
+                const place = places[0];
+                if (!place.geometry || !place.geometry.location) return;
+
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+                marker.setPosition(place.geometry.location);
+                geocodePosition(place.geometry.location);
+            });
+        }
+
+        // แปลงพิกัด -> ที่อยู่
+        function geocodePosition(pos) {
+            geocoder.geocode({ location: pos }, (results, status) => {
+                if (status === "OK") {
+                    if (results[0]) {
+                        const address = results[0].formatted_address;
+                        // ใส่ค่าลงในฟอร์มและช่องค้นหา
+                        document.getElementById('form-address').value = address;
+                        document.getElementById('map-search').value = address;
+                    }
+                }
+            });
+        }
+
+        // แก้ปัญหาแผนที่แสดงไม่เต็มใน Modal
+        const mapModalEl = document.getElementById('mapModal');
+        mapModalEl.addEventListener('shown.bs.modal', event => {
+            if(map) {
+                google.maps.event.trigger(map, "resize");
+                map.setCenter(marker.getPosition());
+            }
+        });
+
+        // --- LIFF & MEMBER SYSTEM ---
         async function initLiff() {
             try {
                 await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -380,51 +499,46 @@
                     const profile = await liff.getProfile();
                     userProfile = profile;
                     
-                    document.getElementById('user-img').src = profile.pictureUrl || 'https://via.placeholder.com/45';
+                    document.getElementById('user-img').src = profile.pictureUrl;
                     document.getElementById('user-name').innerText = profile.displayName;
                     document.getElementById('profile-info').classList.remove('d-none');
-                    document.getElementById('form-name').value = profile.displayName;
+                    document.getElementById('form-name').value = profile.displayName; // Auto-Fill
 
+                    // Update UI in parallel
                     updateMemberUI(profile.userId, profile.displayName);
                     checkStaffAccess(profile.userId);
                 } else {
                     liff.login();
                 }
-            } catch (err) {
-                console.error('LIFF Init Error:', err);
-            }
+            } catch (err) { console.error('LIFF Error:', err); }
         }
 
         async function updateMemberUI(uid, name) {
-            const member = await fetchAPI("getMember", { uid, name });
+            const member = await fetchAPI("getMember", { uid: uid, name: name });
             if (member && member.points !== undefined) {
                 let rankIcon = member.rank === 'VIP' ? '⭐' : (member.rank === 'Super VIP' ? '👑' : '🪙');
                 document.getElementById('user-points-display').innerHTML = 
                     `${rankIcon} ${member.rank} | <b>${member.points}</b> แต้ม`;
             } else {
-                document.getElementById('user-points-display').innerHTML = "เริ่มสะสมแต้มเลย!";
+                document.getElementById('user-points-display').innerHTML = "เริ่มสะสมแต้มกันเถอะ!";
             }
         }
 
         async function checkStaffAccess(uid) {
-            const res = await fetchAPI("checkStaff", { uid });
-            if (res && res.isStaff) {
-                document.getElementById('staff-entry').classList.remove('d-none');
-            }
+            const res = await fetchAPI("checkStaff", { uid: uid });
+            if (res && res.isStaff) document.getElementById('staff-entry').classList.remove('d-none');
         }
 
-        // ==========================================
-        // PRODUCTS
-        // ==========================================
+        // --- PRODUCT & CART SYSTEM ---
         async function fetchProducts() {
             const data = await fetchAPI("getProducts");
             if (data) {
                 products = data.map(item => ({
-                    name: item.name || item['Menu'] || item['ชื่อเมนู'],
-                    price: parseFloat(item.price || item['Price'] || item['ราคา']),
-                    category: item.category || item['Category'] || item['หมวดหมู่'],
-                    img: item.img || item['Image'] || item['รูปภาพ'],
-                    inStock: String(item.InStock || item['มีของ']).toLowerCase() !== 'false'
+                    name: item.name || item['Menu'],
+                    price: parseFloat(item.price || item['Price']),
+                    category: item.category || item['Category'],
+                    img: item.img || item['Image'],
+                    inStock: String(item.InStock).toLowerCase() === 'true'
                 })).filter(i => i.name && !isNaN(i.price));
                 
                 renderCategories();
@@ -436,9 +550,7 @@
             const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
             const container = document.getElementById('category-container');
             let html = '<span class="category-pill active" onclick="filterProduct(\'all\', event)">ทั้งหมด</span>';
-            categories.forEach(cat => {
-                html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`;
-            });
+            categories.forEach(cat => { html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`; });
             container.innerHTML = html;
         }
 
@@ -451,25 +563,20 @@
 
         function renderProducts(list) {
             const container = document.getElementById('product-list');
-            if (list.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center py-5 text-muted">ไม่พบเมนู</div>';
-                return;
-            }
+            if (list.length === 0) { container.innerHTML = '<div class="col-12 text-center py-5 text-muted">ไม่พบสินค้า</div>'; return; }
             
             container.innerHTML = list.map(p => {
                 const isAvail = p.inStock;
-                const fallbackIcon = getCategoryIcon(p.category);
                 return `
                 <div class="col-6 col-md-4 col-lg-3 animate__animated animate__fadeIn">
                     <div class="product-card ${!isAvail ? 'out-of-stock' : ''}">
                         ${!isAvail ? '<div class="stock-badge">หมด</div>' : ''}
-                        <img src="${p.img || ''}" class="product-img" loading="lazy" 
-                             onerror="this.outerHTML='<div class=\"product-img d-flex align-items-center justify-content-center bg-light text-muted\">${fallbackIcon}</div>'">
+                        <img src="${p.img}" class="product-img" loading="lazy" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
                         <div class="p-3 d-flex flex-column flex-grow-1">
                             <h6 class="fw-bold text-truncate" style="font-size:0.95rem;">${p.name}</h6>
                             <div class="text-primary fw-bold mb-2">${p.price.toLocaleString()} ฿</div>
                             <button class="btn btn-sm ${isAvail ? 'btn-outline-primary' : 'btn-secondary'} w-100 rounded-pill mt-auto fw-bold"
-                                onclick="addToCart('${p.name.replace(/'/g, "\\'")}')" ${!isAvail ? 'disabled' : ''}>
+                                onclick="addToCart('${p.name}')" ${!isAvail ? 'disabled' : ''}>
                                 ${isAvail ? '<i class="fas fa-plus me-1"></i> เพิ่ม' : 'หมด'}
                             </button>
                         </div>
@@ -478,36 +585,21 @@
             }).join('');
         }
 
-        function getCategoryIcon(category) {
-            const icons = {
-                'อาหารจานเดียว': '<i class="fas fa-utensils fa-3x"></i>',
-                'กับข้าว': '<i class="fas fa-drumstick-bite fa-3x"></i>',
-                'เครื่องดื่ม': '<i class="fas fa-coffee fa-3x"></i>',
-                'ของหวาน': '<i class="fas fa-ice-cream fa-3x"></i>',
-                'ทานเล่น': '<i class="fas fa-cookie fa-3x"></i>'
-            };
-            return icons[category] || '<i class="fas fa-utensils fa-3x"></i>';
-        }
-
-        // ==========================================
-        // CART
-        // ==========================================
         function addToCart(name) {
             const p = products.find(x => x.name === name);
-            if (!p) return;
-            if (cart[name]) cart[name].qty++;
-            else cart[name] = { ...p, qty: 1 };
+            if(cart[name]) cart[name].qty++; else cart[name] = {...p, qty: 1};
             
-            updateCartUI();
-            
+            // Visual Feedback
             const btn = event.target.closest('button');
-            const original = btn.innerHTML;
+            const originalHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i>';
             btn.classList.replace('btn-outline-primary', 'btn-primary');
             setTimeout(() => {
-                btn.innerHTML = original;
+                btn.innerHTML = originalHTML;
                 btn.classList.replace('btn-primary', 'btn-outline-primary');
-            }, 600);
+            }, 500);
+
+            updateCartUI();
         }
 
         function updateCartUI() {
@@ -520,7 +612,12 @@
             document.getElementById('modal-total').innerText = total.toLocaleString();
             
             const bar = document.getElementById('cart-bar');
-            bar.style.display = qty > 0 ? 'flex' : 'none';
+            if (qty > 0) {
+                bar.style.display = 'flex';
+                bar.classList.add('animate__fadeInUp');
+            } else {
+                bar.style.display = 'none';
+            }
         }
 
         function openCartModal() {
@@ -528,22 +625,21 @@
             const items = Object.values(cart);
             
             if (items.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted py-4">ยังไม่มีสินค้าในตะกร้า</p>';
+                container.innerHTML = '<p class="text-center text-muted py-3">ไม่มีสินค้าในตะกร้า</p>';
             } else {
                 container.innerHTML = items.map(i => `
                     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
                         <div class="d-flex align-items-center">
-                            <img src="${i.img || ''}" width="50" height="50" class="rounded shadow-sm me-3" style="object-fit:cover;" 
-                                 onerror="this.src='https://via.placeholder.com/50?text='">
+                            <img src="${i.img}" width="50" height="50" class="rounded shadow-sm me-3" style="object-fit:cover;">
                             <div>
-                                <div class="fw-bold small">${i.name}</div>
+                                <div class="fw-bold small text-dark">${i.name}</div>
                                 <div class="text-muted small">${i.price} ฿</div>
                             </div>
                         </div>
                         <div class="bg-light rounded-pill px-2 py-1 border d-flex align-items-center">
-                            <i class="fas fa-minus p-2 text-secondary" style="cursor:pointer" onclick="changeQty('${i.name.replace(/'/g, "\\'")}', -1)"></i>
+                            <i class="fas fa-minus p-2 text-secondary" style="cursor:pointer" onclick="changeQty('${i.name}', -1)"></i>
                             <span class="mx-2 fw-bold small">${i.qty}</span>
-                            <i class="fas fa-plus p-2 text-primary" style="cursor:pointer" onclick="changeQty('${i.name.replace(/'/g, "\\'")}', 1)"></i>
+                            <i class="fas fa-plus p-2 text-primary" style="cursor:pointer" onclick="changeQty('${i.name}', 1)"></i>
                         </div>
                     </div>`).join('');
             }
@@ -551,38 +647,35 @@
         }
 
         function changeQty(name, delta) {
-            if (cart[name]) {
-                cart[name].qty += delta;
-                if (cart[name].qty <= 0) delete cart[name];
-                updateCartUI();
-                openCartModal();
-            }
+            if (cart[name]) { cart[name].qty += delta; if (cart[name].qty <= 0) delete cart[name]; updateCartUI(); openCartModal(); }
         }
 
-        // ==========================================
-        // SUBMIT ORDER
-        // ==========================================
+        // --- SUBMIT ORDER (Full Logic) ---
         async function submitOrder() {
-            const name = document.getElementById('form-name').value.trim();
-            const tel = document.getElementById('form-tel').value.trim();
-            const address = document.getElementById('form-address').value.trim();
+            const name = document.getElementById('form-name').value;
+            const tel = document.getElementById('form-tel').value;
+            const address = document.getElementById('form-address').value;
             const fileInput = document.getElementById('form-slip');
 
             if (!name || !tel || !address || fileInput.files.length === 0) {
-                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกให้ครบและแนบสลิป', 'warning');
+                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกข้อมูลให้ครบและแนบสลิป', 'warning');
             }
 
             const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังส่ง...';
-
+            
             try {
+                // UI Loading
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังประมวลผล...';
+                
                 Swal.fire({
                     title: 'กำลังส่งออเดอร์',
+                    html: 'ระบบกำลังทำงาน...<br>กรุณารอสักครู่ ห้ามปิดหน้าจอ',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
 
+                // Compress & Send
                 const compressed = await compressImage(fileInput.files[0]);
                 const itemsText = Object.values(cart).map(i => `${i.name} (x${i.qty})`).join(', ');
 
@@ -593,34 +686,31 @@
                     phone: tel,
                     address: address,
                     items: itemsText,
-                    total: document.getElementById('modal-total').innerText.replace(/,/g, ''),
+                    total: document.getElementById('modal-total').innerText,
                     image: compressed,
                     mimeType: 'image/jpeg'
                 });
 
                 if (result.result === "Success") {
-                    if (userProfile.userId) await updateMemberUI(userProfile.userId, userProfile.displayName);
+                    // Refresh Points
+                    if (userProfile.userId) updateMemberUI(userProfile.userId, userProfile.displayName);
                     
                     await Swal.fire({
                         icon: 'success',
-                        title: 'สั่งสำเร็จ!',
-                        text: 'ร้านได้รับออเดอร์แล้วค่ะ',
-                        confirmButtonText: 'ปิด'
+                        title: 'สำเร็จ!',
+                        text: 'ทางร้านได้รับออเดอร์เรียบร้อยแล้ว',
+                        confirmButtonText: 'ปิดหน้าต่าง'
                     });
                     
-                    cart = {};
-                    updateCartUI();
-                    bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
                     liff.closeWindow();
                 } else {
-                    throw new Error(result.message || 'เกิดข้อผิดพลาด');
+                    throw new Error(result.message || "Unknown Error");
                 }
             } catch (e) {
                 console.error(e);
-                Swal.fire('เกิดข้อผิดพลาด', e.message || 'ส่งข้อมูลไม่สำเร็จ', 'error');
-            } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>ยืนยันสั่งซื้อ';
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>ยืนยันการสั่งซื้อ';
+                Swal.fire('เกิดข้อผิดพลาด', 'ส่งข้อมูลไม่สำเร็จ: ' + e.message, 'error');
             }
         }
 
@@ -634,319 +724,70 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        const maxW = 800;
-                        const ratio = maxW / img.width;
-                        const w = maxW;
-                        const h = img.height * ratio;
-                        canvas.width = w;
-                        canvas.height = h;
+                        const w = Math.min(800, img.width);
+                        const h = img.height * (w / img.width);
+                        canvas.width = w; canvas.height = h;
                         ctx.drawImage(img, 0, 0, w, h);
-                        resolve(canvas.toDataURL('image/jpeg', 0.72).split(',')[1]);
+                        resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
                     };
                 };
             });
         }
 
-        // ==========================================
-        // MY ORDERS (ลูกค้า)
-        // ==========================================
-        function showMyOrders() {
-            if (!userProfile.userId) {
-                return Swal.fire('กรุณาเข้าสู่ระบบ LINE ก่อน', '', 'warning');
-            }
-            document.getElementById('my-orders-dashboard').style.display = 'block';
-            refreshMyOrders();
-        }
-
-        function hideMyOrders() {
-            document.getElementById('my-orders-dashboard').style.display = 'none';
-        }
-
-        async function refreshMyOrders() {
-            const container = document.getElementById('my-order-list');
-            container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><br>กำลังโหลด...</div>';
-
-            const orders = await fetchAPI("getMyOrders", { uid: userProfile.userId });
-            
-            if (!orders || orders.length === 0) {
-                container.innerHTML = '<div class="alert alert-info text-center">ยังไม่มีประวัติการสั่งซื้อ</div>';
-                return;
-            }
-
-            orders.sort((a,b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-
-            container.innerHTML = orders.map(o => {
-                const statusClass = getStatusClass(o.Status);
-                return `
-                <div class="card shadow-sm mb-3 border-0">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <small class="text-muted">#${o['Order ID']}</small>
-                                <div class="fw-bold">${o.Timestamp}</div>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge ${statusClass} fs-6">${o.Status}</span>
-                                <div class="fw-bold text-primary mt-1">${o.Total} ฿</div>
-                            </div>
-                        </div>
-                        <div class="small text-muted mb-2">${o.Items}</div>
-                        <div class="small text-secondary">${o.Address.substring(0,80)}${o.Address.length > 80 ? '...' : ''}</div>
-                        <div class="mt-3">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="viewSlip('${o.SlipURL || ''}')">
-                                <i class="fas fa-receipt"></i> ดูสลิป
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function getStatusClass(status) {
-            const map = {
-                'เสร็จสิ้น': 'bg-success',
-                'ยกเลิก': 'bg-danger',
-                'กำลังจัดส่ง': 'bg-info',
-                'กำลังทำอาหาร': 'bg-warning',
-                'รอดำเนินการ': 'bg-secondary'
-            };
-            return map[status] || 'bg-secondary';
-        }
-
-        // ==========================================
-        // STAFF DASHBOARD
-        // ==========================================
-        function showStaffDashboard() {
-            document.getElementById('staff-dashboard').style.display = 'block';
-            refreshDashboard();
-        }
-
-        function hideStaffDashboard() {
-            document.getElementById('staff-dashboard').style.display = 'none';
-        }
-
+        // --- DASHBOARD HELPERS ---
+        function showStaffDashboard() { document.getElementById('staff-dashboard').style.display = 'block'; refreshDashboard(); }
+        function hideStaffDashboard() { document.getElementById('staff-dashboard').style.display = 'none'; }
+        
         async function refreshDashboard() {
             const stats = await fetchAPI("getOwnerStats");
             if (stats) {
-                document.getElementById('stat-today').innerText = stats.realizedRevenue?.toLocaleString() || '0';
-                document.getElementById('stat-orders').innerText = stats.totalOrders || '0';
+                document.getElementById('stat-today').innerText = stats.todaySales.toLocaleString();
+                document.getElementById('stat-orders').innerText = stats.totalOrders.toLocaleString();
                 
-                const topList = document.getElementById('stat-top-menu');
-                if (stats.topMenus?.length > 0) {
-                    topList.innerHTML = stats.topMenus.map((m,i) => `
-                        <li class="d-flex justify-content-between py-2 border-bottom">
-                            <span><span class="badge bg-secondary me-2">${i+1}</span>${m.name}</span>
-                            <span class="fw-bold text-success">${m.count} ครั้ง</span>
-                        </li>
-                    `).join('');
-                } else {
-                    topList.innerHTML = '<li class="text-center text-muted py-3">ยังไม่มีข้อมูล</li>';
-                }
+                const list = document.getElementById('stat-top-menu');
+                if (stats.topMenus.length === 0) list.innerHTML = '<li class="text-center text-muted py-2">ไม่มีข้อมูล</li>';
+                else list.innerHTML = stats.topMenus.map((item, i) => `
+                    <li class="d-flex justify-content-between border-bottom py-2">
+                        <span><span class="badge bg-secondary me-2">${i+1}</span>${item.name}</span>
+                        <span class="fw-bold text-success">${item.count}</span>
+                    </li>`).join('');
             }
-
-            let orders = await fetchAPI("getAdminOrders") || [];
-
-            // กรองตาม UI
-            const search = (document.getElementById('order-search')?.value || '').toLowerCase().trim();
-            const statusFilter = document.getElementById('status-filter')?.value || '';
-
-            if (statusFilter) {
-                orders = orders.filter(o => o.Status === statusFilter);
-            }
-            if (search) {
-                orders = orders.filter(o =>
-                    String(o['Order ID'] || '').toLowerCase().includes(search) ||
-                    String(o.Name || '').toLowerCase().includes(search)
-                );
-            }
-
+            
+            const orders = await fetchAPI("getAdminOrders");
             const container = document.getElementById('admin-order-list');
-            if (orders.length === 0) {
-                container.innerHTML = '<div class="alert alert-info text-center">ไม่พบออเดอร์</div>';
-                return;
+            if (orders) {
+                container.innerHTML = orders.map(o => `
+                    <div class="bg-white p-3 rounded-3 shadow-sm mb-3 border-start border-4 border-primary">
+                        <div class="d-flex justify-content-between mb-2"><span class="badge bg-info text-dark">${o['Status']}</span><small class="text-muted">${o['Timestamp']}</small></div>
+                        <h6 class="fw-bold mb-1">${o['Name']} (${o['Total']}฿)</h6>
+                        <div class="small text-muted mb-2">${o['Items']}</div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="viewSlip('${o['SlipURL']}')">ดูสลิป</button>
+                            <button class="btn btn-sm btn-dark flex-grow-1" onclick="updateStatus('${o['Order ID']}')">เปลี่ยนสถานะ</button>
+                        </div>
+                    </div>`).join('');
             }
-
-            container.innerHTML = orders.map(o => `
-                <div class="card shadow-sm mb-3 border-0 border-start border-4 border-primary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <div>
-                                <small class="text-muted">#${o['Order ID']}</small>
-                                <h6 class="fw-bold mb-1">${o.Name} (${o.Total} ฿)</h6>
-                            </div>
-                            <span class="badge ${getStatusClass(o.Status)}">${o.Status}</span>
-                        </div>
-                        <div class="small text-muted mb-2">${o.Items}</div>
-                        <small class="text-secondary">${o.Timestamp}</small>
-                        <div class="mt-3 d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="viewSlip('${o.SlipURL || ''}')">
-                                <i class="fas fa-receipt"></i> ดูสลิป
-                            </button>
-                            <button class="btn btn-sm btn-dark flex-grow-1" onclick="updateStatus('${o['Order ID']}')">
-                                <i class="fas fa-exchange-alt"></i> เปลี่ยนสถานะ
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
         }
-
-        // Event listeners for filtering
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('order-search');
-            const statusSelect = document.getElementById('status-filter');
-            if (searchInput) searchInput.addEventListener('input', refreshDashboard);
-            if (statusSelect) statusSelect.addEventListener('change', refreshDashboard);
-        });
-
+        
         async function updateStatus(orderId) {
-            const { value: newStatus } = await Swal.fire({
-                title: 'อัปเดตสถานะ',
-                input: 'select',
-                inputOptions: {
-                    'รอดำเนินการ': 'รอดำเนินการ',
-                    'กำลังทำอาหาร': 'กำลังทำอาหาร',
-                    'กำลังจัดส่ง': 'กำลังจัดส่ง',
-                    'เสร็จสิ้น': 'เสร็จสิ้น',
-                    'ยกเลิก': 'ยกเลิก'
-                },
+            const { value: status } = await Swal.fire({
+                title: 'เปลี่ยนสถานะ', input: 'select',
+                inputOptions: { 'กำลังทำอาหาร': 'กำลังทำอาหาร', 'กำลังจัดส่ง': 'กำลังจัดส่ง', 'เสร็จสิ้น': 'เสร็จสิ้น', 'ยกเลิก': 'ยกเลิก' },
                 showCancelButton: true
             });
-
-            if (!newStatus) return;
-
-            Swal.showLoading();
-            const res = await postAPI({ action: "updateStatus", orderId, newStatus });
-            Swal.close();
-
-            if (res?.result === "Success") {
-                Swal.fire('อัปเดตเรียบร้อย', '', 'success');
+            if (status) {
+                Swal.showLoading();
+                await postAPI({ action: "updateStatus", orderId: orderId, newStatus: status });
+                Swal.fire('เรียบร้อย', '', 'success');
                 refreshDashboard();
-            } else {
-                Swal.fire('เกิดข้อผิดพลาด', res?.message || '', 'error');
             }
         }
-
-        function viewSlip(url) {
-            if (!url || url.includes('Error')) {
-                Swal.fire('ไม่พบสลิป', '', 'info');
-                return;
-            }
-            Swal.fire({
-                imageUrl: url,
-                imageAlt: 'สลิปการโอนเงิน',
-                showCloseButton: true,
-                showConfirmButton: false,
-                width: '90%'
-            });
+        
+        function viewSlip(url) { 
+            if(!url || url === "undefined") return Swal.fire('ไม่พบสลิป', '', 'info');
+            Swal.fire({ imageUrl: url, imageAlt: 'Slip', showCloseButton: true, showConfirmButton: false, width: '90%' }); 
         }
 
-        // ==========================================
-        // GOOGLE MAPS (เหมือนเดิม)
-        // ==========================================
-        async function openMapModal() {
-            const modal = new bootstrap.Modal(document.getElementById('mapModal'));
-            modal.show();
-
-            if (!isMapLoaded) {
-                try {
-                    const res = await fetchAPI("getMapsKey");
-                    if (!res?.key) {
-                        document.getElementById('map').innerHTML = 'ไม่พบ Google Maps API Key';
-                        return;
-                    }
-
-                    const script = document.createElement('script');
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${res.key}&libraries=places&callback=initMap`;
-                    script.async = true;
-                    script.defer = true;
-                    document.head.appendChild(script);
-                    isMapLoaded = true;
-                } catch (e) {
-                    document.getElementById('map').innerHTML = 'โหลดแผนที่ล้มเหลว';
-                }
-            }
-        }
-
-        window.initMap = function() {
-            const defaultPos = { lat: 13.7563, lng: 100.5018 };
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: defaultPos,
-                zoom: 15,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: false
-            });
-
-            geocoder = new google.maps.Geocoder();
-
-            marker = new google.maps.Marker({
-                position: defaultPos,
-                map: map,
-                draggable: true,
-                animation: google.maps.Animation.DROP
-            });
-
-            marker.addListener("dragend", () => geocodePosition(marker.getPosition()));
-            map.addListener("click", (e) => {
-                marker.setPosition(e.latLng);
-                geocodePosition(e.latLng);
-            });
-
-            initSearchBox();
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    pos => {
-                        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        map.setCenter(loc);
-                        marker.setPosition(loc);
-                        geocodePosition(loc);
-                    },
-                    () => {}
-                );
-            }
-        };
-
-        function initSearchBox() {
-            const input = document.getElementById("map-search");
-            const searchBox = new google.maps.places.SearchBox(input);
-
-            map.addListener("bounds_changed", () => searchBox.setBounds(map.getBounds()));
-
-            searchBox.addListener("places_changed", () => {
-                const places = searchBox.getPlaces();
-                if (places.length === 0) return;
-                const place = places[0];
-                if (!place.geometry?.location) return;
-
-                if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                } else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17);
-                }
-                marker.setPosition(place.geometry.location);
-                geocodePosition(place.geometry.location);
-            });
-        }
-
-        function geocodePosition(pos) {
-            geocoder.geocode({ location: pos }, (results, status) => {
-                if (status === "OK" && results[0]) {
-                    const addr = results[0].formatted_address;
-                    document.getElementById('form-address').value = addr;
-                    document.getElementById('map-search').value = addr;
-                }
-            });
-        }
-
-        document.getElementById('mapModal').addEventListener('shown.bs.modal', () => {
-            if (map) {
-                google.maps.event.trigger(map, "resize");
-                map.setCenter(marker.getPosition());
-            }
-        });
     </script>
 </body>
 </html>
