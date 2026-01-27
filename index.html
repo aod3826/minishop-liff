@@ -269,7 +269,7 @@
         </div>
     </div>
 
-    <!-- MAP MODAL (เพิ่มใหม่) -->
+    <!-- MAP MODAL (เ��ิ่มใหม่) -->
     <div class="modal fade" id="mapModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -281,7 +281,7 @@
                     <!-- Search Box -->
                     <div class="input-group mb-2 shadow-sm rounded-pill">
                         <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="fas fa-search text-muted"></i></span>
-                        <input type="text" id="map-search" class="form-control border-start-0 rounded-end-pill py-2" placeholder="ค้นหา หมู่บ้าน, อาคาร, หรือสถานที่...">
+                        <input type="text" id="map-search" class="form-control border-start-0 rounded-end-pill py-2" placeholder="ค้นหา หมู่บ้าน, อาคาร, หร[...]">
                     </div>
                     
                     <!-- Map Container -->
@@ -320,7 +320,7 @@
         let userProfile = {};
         
         // Maps Variables
-        let map, marker, geocoder;
+        let map, marker, geocoder, selectedCoords = null;
         let isMapLoaded = false;
 
         // ==========================================
@@ -470,6 +470,11 @@
 
         // แปลงพิกัด -> ที่อยู่
         function geocodePosition(pos) {
+            // support both google.maps.LatLng and plain {lat, lng} objects
+            const lat = (typeof pos.lat === 'function') ? pos.lat() : pos.lat;
+            const lng = (typeof pos.lng === 'function') ? pos.lng() : pos.lng;
+            selectedCoords = { lat, lng };
+
             geocoder.geocode({ location: pos }, (results, status) => {
                 if (status === "OK") {
                     if (results[0]) {
@@ -688,7 +693,8 @@
                     items: itemsText,
                     total: document.getElementById('modal-total').innerText,
                     image: compressed,
-                    mimeType: 'image/jpeg'
+                    mimeType: 'image/jpeg',
+                    coords: selectedCoords ? `${selectedCoords.lat},${selectedCoords.lng}` : ''
                 });
 
                 if (result.result === "Success") {
@@ -772,7 +778,8 @@
         async function updateStatus(orderId) {
             const { value: status } = await Swal.fire({
                 title: 'เปลี่ยนสถานะ', input: 'select',
-                inputOptions: { 'กำลังทำอาหาร': 'กำลังทำอาหาร', 'กำลังจัดส่ง': 'กำลังจัดส่ง', 'เสร็จสิ้น': 'เสร็จสิ้น', 'ยกเลิก': 'ยกเลิก' },
+                inputOptions: { 'กำลังทำอาหาร': 'กำลังทำอาหาร', 'กำลังจัดส่ง': 'กำลังจัดส่ง', 'เส��[...]'
+                ,
                 showCancelButton: true
             });
             if (status) {
