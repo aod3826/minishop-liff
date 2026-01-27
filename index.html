@@ -307,21 +307,47 @@
 
     <script>
         // ==========================================
-        //  CONFIG: ตั้งค่าระบบ (ค่าเดิมของคุณ)
-        // ==========================================
-        const CONFIG = {
-    liffId: "2008933274-cQhoTxw9",
-    scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
-};
+       const CONFIG = {
+            liffId: "2008933274-cQhoTxw9",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
+        };
 
-        // Global Variables
         let products = [];
         let cart = {};
         let userProfile = {};
-        
-        // Maps Variables
         let map, marker, geocoder, selectedCoords = null;
         let isMapLoaded = false;
+
+        window.onload = async () => {
+            await initLiff();
+            await fetchProducts();
+        };
+
+        async function fetchAPI(action, params = {}) {
+            try {
+                const url = new URL(CONFIG.scriptUrl);
+                url.searchParams.append("action", action);
+                Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+                const response = await fetch(url);
+                return await response.json();
+            } catch (error) {
+                console.error("API GET Error:", error);
+                return null;
+            }
+        }
+
+        async function postAPI(payload) {
+            try {
+                const response = await fetch(CONFIG.scriptUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API POST Error:", error);
+                throw error;
+            }
+        }
 
         // ==========================================
         //  INITIALIZATION
