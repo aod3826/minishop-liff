@@ -544,7 +544,7 @@
         </h1>
         <p class="shop-subtitle">อาหารอร่อย สดใหม่ ทุกวัน ตลอด 24 ชม.</p>
         
-        <!-- User Profile (จะแสดงเมื่อล็อกอินแล้ว) -->
+        <!-- User Profile -->
         <div id="profile-info" class="d-none animate__animated animate__fadeInUp">
             <div class="member-badge">
                 <img id="user-img" src="" class="user-avatar" alt="Profile Picture">
@@ -566,7 +566,6 @@
         <!-- Categories -->
         <div class="category-scroll" id="category-container">
             <span class="category-pill active" onclick="filterProduct('all', event)">ทั้งหมด</span>
-            <!-- Categories จะถูกเพิ่มโดย JavaScript -->
         </div>
 
         <!-- Products Grid -->
@@ -599,7 +598,7 @@
         </div>
     </div>
 
-    <!-- Staff Dashboard (Overlay) -->
+    <!-- Staff Dashboard -->
     <div id="staff-dashboard" class="staff-dashboard-overlay">
         <div class="dashboard-header">
             <div class="container">
@@ -819,13 +818,10 @@
         // ==========================================
         //  CONFIGURATION
         // ==========================================
-       const CONFIG = {
-    liffId: "2008933274-cQhoTxw9",
-    scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec",
-    
-    // เพิ่ม property นี้ถ้า fetchAPI ยังใช้ EXEC_URL
-    EXEC_URL: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
-};
+        const CONFIG = {
+            liffId: "2008933274-cQhoTxw9",
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
+        };
 
         // ==========================================
         //  GLOBAL VARIABLES
@@ -1051,7 +1047,7 @@
         //  PRODUCT MANAGEMENT
         // ==========================================
         async function fetchProducts() {
-            console.log('Fetching products...');
+            console.log('Fetching products from:', CONFIG.scriptUrl);
             
             try {
                 const productList = document.getElementById('product-list');
@@ -1064,38 +1060,99 @@
                     </div>
                 `;
                 
-                const data = await fetchAPI('getProducts');
+                // ใช้ URL แบบตรงๆ
+                const apiUrl = CONFIG.scriptUrl + '?action=getProducts';
+                console.log('API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl);
+                console.log('Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API response data:', data);
                 
                 if (data && Array.isArray(data)) {
-                    products = data.map(item => ({
-                        name: item.name || item.Menu || 'ไม่มีชื่อ',
-                        price: parseFloat(item.price || item.Price || 0),
-                        category: item.category || item.Category || 'อื่นๆ',
-                        img: item.img || item.Image || 'https://via.placeholder.com/300x200?text=No+Image',
-                        inStock: String(item.InStock).toLowerCase() === 'true' || item.inStock === true
-                    }));
+                    // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
+                    products = data.map(item => {
+                        console.log('Processing item:', item);
+                        
+                        return {
+                            name: item.name || item.Menu || 'ไม่มีชื่อ',
+                            price: parseFloat(item.price || item.Price || 0),
+                            category: item.category || item.Category || 'อื่นๆ',
+                            img: item.img || item.Image || 'https://via.placeholder.com/300x200?text=No+Image',
+                            inStock: item.inStock === true || 
+                                     item.InStock === true || 
+                                     String(item.inStock).toLowerCase() === 'true' ||
+                                     String(item.InStock).toLowerCase() === 'true'
+                        };
+                    });
                     
-                    console.log(`Loaded ${products.length} products`);
+                    console.log(`Processed ${products.length} products:`, products);
                     
+                    // Render categories
                     renderCategories();
+                    
+                    // Render products
                     renderProducts(products);
+                    
+                    console.log('Products loaded successfully');
+                    
                 } else {
-                    throw new Error('Invalid product data');
+                    console.error('Invalid data format from API:', data);
+                    showError('ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาลองใหม่');
                 }
+                
             } catch (error) {
                 console.error('Fetch products error:', error);
-                showError('ไม่สามารถโหลดเมนูอาหารได้');
+                
+                // แสดงข้อมูลตัวอย่างถ้า API ไม่ทำงาน
+                showWarning('กำลังแสดงข้อมูลตัวอย่าง');
+                
+                products = [
+                    {
+                        name: "ข้าวผัดกระเพรา",
+                        price: 50,
+                        category: "อาหารจานเดียว",
+                        img: "https://img.wongnai.com/p/1920x0/2021/08/17/d47d0571d98b4e6eb5935ef3cfac5e1d.jpg",
+                        inStock: true
+                    },
+                    {
+                        name: "ผัดไทย",
+                        price: 60,
+                        category: "อาหารจานเดียว",
+                        img: "https://img.wongnai.com/p/1920x0/2019/01/30/1484fec4a4264e319b8809a6b98d9c18.jpg",
+                        inStock: true
+                    }
+                ];
+                
+                renderCategories();
+                renderProducts(products);
             }
         }
 
         function renderCategories() {
             const container = document.getElementById('category-container');
-            if (!container) return;
+            if (!container) {
+                console.error('Category container not found');
+                return;
+            }
             
-            // ดึงหมวดหมู่ทั้งหมด (ไม่ซ้ำ)
-            const categories = ['ทั้งหมด', ...new Set(products.map(p => p.category).filter(Boolean))];
+            // ดึงหมวดหมู่ทั้งหมดจาก products
+            const allCategories = ['ทั้งหมด'];
             
-            const categoryHTML = categories.map(category => `
+            products.forEach(product => {
+                if (product.category && !allCategories.includes(product.category)) {
+                    allCategories.push(product.category);
+                }
+            });
+            
+            console.log('Categories found:', allCategories);
+            
+            const categoryHTML = allCategories.map(category => `
                 <span class="category-pill ${category === 'ทั้งหมด' ? 'active' : ''}" 
                       onclick="filterProduct('${category}', event)">
                     ${category}
@@ -1103,9 +1160,12 @@
             `).join('');
             
             container.innerHTML = categoryHTML;
+            console.log('Categories rendered');
         }
 
         function filterProduct(category, event) {
+            console.log('Filtering by category:', category);
+            
             // อัปเดตสถานะปุ่มหมวดหมู่
             document.querySelectorAll('.category-pill').forEach(el => {
                 el.classList.remove('active');
@@ -1121,13 +1181,21 @@
                 filteredProducts = products.filter(p => p.category === category);
             }
             
+            console.log(`Filtered ${filteredProducts.length} products`);
             renderProducts(filteredProducts);
         }
 
         function renderProducts(productList) {
+            console.log('Rendering products:', productList);
+            
             const container = document.getElementById('product-list');
+            if (!container) {
+                console.error('Product list container not found');
+                return;
+            }
             
             if (!productList || productList.length === 0) {
+                console.log('No products to display');
                 container.innerHTML = `
                     <div class="col-12">
                         <div class="empty-state">
@@ -1142,15 +1210,24 @@
                 return;
             }
             
+            console.log(`Rendering ${productList.length} products`);
+            
             const productHTML = productList.map((product, index) => {
+                console.log('Product data:', product);
+                
+                // ตรวจสอบว่าสินค้ามีในสต็อกหรือไม่
                 const isAvailable = product.inStock !== false;
+                console.log(`Product ${product.name}: inStock = ${product.inStock}, isAvailable = ${isAvailable}`);
+                
+                // ตรวจสอบว่ามีรูปภาพหรือไม่
+                const imageUrl = product.img || 'https://via.placeholder.com/300x200?text=No+Image';
                 
                 return `
                     <div class="col-6 col-md-4 col-lg-3 animate__animated animate__fadeIn" 
                          style="animation-delay: ${index * 50}ms">
                         <div class="product-card ${!isAvailable ? 'out-of-stock' : ''}">
                             <div class="product-img-container">
-                                <img src="${product.img}" 
+                                <img src="${imageUrl}" 
                                      class="product-img" 
                                      alt="${product.name}"
                                      loading="lazy"
@@ -1168,7 +1245,7 @@
                             
                             <div class="product-info">
                                 <div class="product-name">${product.name}</div>
-                                <div class="product-price">${product.price.toLocaleString()} ฿</div>
+                                <div class="product-price">${product.price ? product.price.toLocaleString() : '0'} ฿</div>
                                 
                                 <button class="btn btn-sm ${isAvailable ? 'btn-primary' : 'btn-secondary'} w-100"
                                         onclick="addToCart('${product.name.replace(/'/g, "\\'")}')"
@@ -1190,6 +1267,7 @@
             }).join('');
             
             container.innerHTML = productHTML;
+            console.log('Products rendered successfully');
         }
 
         // ==========================================
@@ -1580,13 +1658,7 @@
                 mapTypeControl: true,
                 streetViewControl: false,
                 fullscreenControl: true,
-                zoomControl: true,
-                styles: [
-                    {
-                        featureType: 'poi.business',
-                        stylers: [{ visibility: 'off' }]
-                    }
-                ]
+                zoomControl: true
             });
             
             geocoder = new google.maps.Geocoder();
@@ -1597,11 +1669,7 @@
                 map: map,
                 draggable: true,
                 title: 'ลากเพื่อเปลี่ยนตำแหน่ง',
-                animation: google.maps.Animation.DROP,
-                icon: {
-                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    scaledSize: new google.maps.Size(40, 40)
-                }
+                animation: google.maps.Animation.DROP
             });
             
             // เพิ่ม Autocomplete
@@ -1680,17 +1748,8 @@
                 return;
             }
             
-            Swal.fire({
-                title: 'กำลังระบุตำแหน่ง...',
-                text: 'กรุณาอนุญาตการเข้าถึงตำแหน่ง',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-            
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    Swal.close();
-                    
                     if (!map || !marker) return;
                     
                     const userLocation = {
@@ -1703,31 +1762,9 @@
                     marker.setPosition(userLocation);
                     
                     updateAddressFromMarker();
-                    
-                    showSuccess('ระบุตำแหน่งสำเร็จ');
                 },
                 (error) => {
-                    Swal.close();
                     console.error('Geolocation error:', error);
-                    
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            showError('คุณปฏิเสธการเข้าถึงตำแหน่ง');
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            showError('ข้อมูลตำแหน่งไม่พร้อมใช้งาน');
-                            break;
-                        case error.TIMEOUT:
-                            showError('คำขอระบุตำแหน่งหมดเวลา');
-                            break;
-                        default:
-                            showError('ไม่สามารถระบุตำแหน่งได้');
-                    }
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
                 }
             );
         }
