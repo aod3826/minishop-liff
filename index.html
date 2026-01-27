@@ -496,27 +496,25 @@
             }
         });
 
-        // --- LIFF & MEMBER SYSTEM ---
-        async function initLiff() {
-            try {
-                await liff.init({ liffId: CONFIG.LIFF_ID });
-                if (liff.isLoggedIn()) {
-                    const profile = await liff.getProfile();
-                    userProfile = profile;
-                    
-                    document.getElementById('user-img').src = profile.pictureUrl;
-                    document.getElementById('user-name').innerText = profile.displayName;
-                    document.getElementById('profile-info').classList.remove('d-none');
-                    document.getElementById('form-name').value = profile.displayName; // Auto-Fill
+      async function initLiff() {
+    try {
+        await liff.init({ liffId: CONFIG.liffId }); // เปลี่ยนจาก LIFF_ID เป็น liffId
+        if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            userProfile = profile;
+            
+            document.getElementById('user-img').src = profile.pictureUrl;
+            document.getElementById('user-name').innerText = profile.displayName;
+            document.getElementById('profile-info').classList.remove('d-none');
+            document.getElementById('form-name').value = profile.displayName;
 
-                    // Update UI in parallel
-                    updateMemberUI(profile.userId, profile.displayName);
-                    checkStaffAccess(profile.userId);
-                } else {
-                    liff.login();
-                }
-            } catch (err) { console.error('LIFF Error:', err); }
+            updateMemberUI(profile.userId, profile.displayName);
+            checkStaffAccess(profile.userId);
+        } else {
+            liff.login();
         }
+    } catch (err) { console.error('LIFF Error:', err); }
+}
 
         async function updateMemberUI(uid, name) {
             const member = await fetchAPI("getMember", { uid: uid, name: name });
@@ -551,14 +549,16 @@
             }
         }
 
-        function renderCategories() {
-            const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
-            const container = document.getElementById('category-container');
-            let html = '<span class="category-pill active" onclick="filterProduct('all', event)">ทั้งหมด</span>';
-            categories.forEach(cat => { html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`; });
-            container.innerHTML = html;
-        }
-
+     function renderCategories() {
+    const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
+    const container = document.getElementById('category-container');
+    // แก้ไขเครื่องหมายคำพูดรอบๆ 'all'
+    let html = `<span class="category-pill active" onclick="filterProduct('all', event)">ทั้งหมด</span>`;
+    categories.forEach(cat => { 
+        html += `<span class="category-pill" onclick="filterProduct('${cat}', event)">${cat}</span>`; 
+    });
+    container.innerHTML = html;
+}
         function filterProduct(cat, event) {
             document.querySelectorAll('.category-pill').forEach(el => el.classList.remove('active'));
             event.target.classList.add('active');
