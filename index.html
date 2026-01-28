@@ -401,6 +401,25 @@
             font-family: 'Prompt', sans-serif;
         }
 
+        /* Address Loading Indicator */
+        .address-loading {
+            position: relative;
+        }
+
+        .address-loading::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e2e8f0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
         /* Modal Styles */
         .modal-content {
             border-radius: 20px;
@@ -587,7 +606,7 @@
     </div>
 
     <!-- Cart Bar -->
-    <div class="cart-bar animate__animated animate__fadeInUp" id="cart-bar" onclick="openCartModal()">
+    <div class="cart-bar animate__animated animate__fadeInUp" id="cart-bar" onclick="openCartModal()" style="display: none;">
         <div class="d-flex align-items-center">
             <div class="cart-items-count" id="total-qty">0</div>
             <span class="cart-text">ตะกร้าสินค้า</span>
@@ -734,7 +753,7 @@
                             </div>
                             <small class="form-text text-muted">
                                 <i class="fas fa-info-circle me-1"></i>
-                                กดปุ่มแผนที่เพื่อระบุตำแหน่งที่อยู่ให้แม่นยำขึ้น
+                                กดปุ่มแผนที่เพื่อระบุตำแหน่งที่อยู่ให้แม่นยำขึ้น (จะกรอกที่อยู่ให้อัตโนมัติ)
                             </small>
                         </div>
 
@@ -795,6 +814,8 @@
                     <div class="alert alert-info mt-3 mb-0">
                         <i class="fas fa-info-circle me-2"></i>
                         ลากหมุดสีแดง <span class="text-danger">📍</span> ไปยังตำแหน่งที่ต้องการส่งสินค้า
+                        <br>
+                        <small class="text-success"><i class="fas fa-magic me-1"></i>ระบบจะกรอกที่อยู่ให้อัตโนมัติเมื่อคุณเลื่อนหมุด</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -837,6 +858,7 @@
         let geocoder = null;
         let isMapLoaded = false;
         let autocomplete = null;
+        let isGeocodingInProgress = false; // ป้องกัน Geocoding ซ้ำซ้อน
 
         // ==========================================
         //  INITIALIZATION
@@ -1271,13 +1293,19 @@
         }
 
         // ==========================================
-        //  CART MANAGEMENT
+        //  CART MANAGEMENT - แก้ไข BUG #1
         // ==========================================
         function addToCart(productName) {
             // หาสินค้าจากชื่อ
             const product = products.find(p => p.name === productName);
             if (!product) {
                 showError('ไม่พบสินค้านี้ในระบบ');
+                return;
+            }
+            
+            // ตรวจสอบสต็อก
+            if (!product.inStock) {
+                showWarning('สินค้านี้หมดแล้ว');
                 return;
             }
             
@@ -1295,18 +1323,24 @@
             showSuccess(`เพิ่ม ${productName} ลงตะกร้าแล้ว`);
             updateCartUI();
             
-            // แอนิเมชันปุ่ม
-            const button = event.target;
-            const originalHTML = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i> สำเร็จ';
-            button.classList.add('btn-success');
-            button.classList.remove('btn-primary');
-            
-            setTimeout(() => {
-                button.innerHTML = originalHTML;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-primary');
-            }, 1500);
+            // แอนิเมชันปุ่ม - แก้ไข: ต้องหา button จาก event
+            try {
+                const button = event.target.closest('button');
+                if (button) {
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> สำเร็จ';
+                    button.classList.add('btn-success');
+                    button.classList.remove('btn-primary');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalHTML;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-primary');
+                    }, 1500);
+                }
+            } catch (e) {
+                console.log('Button animation skipped:', e);
+            }
         }
 
         function updateCartUI() {
@@ -1321,11 +1355,10 @@
             document.getElementById('total-price').textContent = totalPrice.toLocaleString();
             document.getElementById('modal-total').textContent = totalPrice.toLocaleString();
             
-            // แสดง/ซ่อนแถบตะกร้า
+            // แสดง/ซ่อนแถบตะกร้า - แก้ไข BUG #2
             const cartBar = document.getElementById('cart-bar');
             if (totalQty > 0) {
                 cartBar.style.display = 'flex';
-                cartBar.classList.add('animate__fadeInUp');
             } else {
                 cartBar.style.display = 'none';
             }
@@ -1400,11 +1433,6 @@
                 }
                 
                 updateCartUI();
-                
-                // ถ้ากำลังเปิด Modal อยู่ ให้รีเฟรช
-                if (document.getElementById('cartModal').classList.contains('show')) {
-                    updateCartModalItems();
-                }
             }
         }
 
@@ -1412,7 +1440,6 @@
             if (cart[productName]) {
                 delete cart[productName];
                 updateCartUI();
-                updateCartModalItems();
                 showWarning(`ลบ ${productName} ออกจากตะกร้าแล้ว`);
             }
         }
@@ -1428,7 +1455,7 @@
         }
 
         // ==========================================
-        //  ORDER SUBMISSION
+        //  ORDER SUBMISSION - แก้ไข BUG #3
         // ==========================================
         async function submitOrder() {
             // ตรวจสอบข้อมูล
@@ -1513,6 +1540,12 @@
             `;
             
             try {
+                // แก้ไข BUG: ตรวจสอบขนาดไฟล์ก่อนอัปโหลด
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (slipFile.size > maxSize) {
+                    throw new Error('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 10MB)');
+                }
+                
                 // อัปโหลดสลิป
                 const slipBase64 = await fileToBase64(slipFile);
                 
@@ -1549,6 +1582,7 @@
                     
                     // รีเซ็ตตะกร้าและฟอร์ม
                     cart = {};
+                    selectedCoords = null;
                     document.getElementById('order-form').reset();
                     document.getElementById('form-name').value = userProfile.displayName || '';
                     
@@ -1559,11 +1593,6 @@
                     // อัปเดต UI
                     updateCartUI();
                     updateMemberPoints();
-                    
-                    // รีโหลดหน้าเว็บหลังจาก 3 วินาที
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
                     
                 } else {
                     throw new Error(result?.message || 'ไม่สามารถส่งออเดอร์ได้');
@@ -1588,7 +1617,7 @@
         }
 
         // ==========================================
-        //  GOOGLE MAPS
+        //  GOOGLE MAPS - เพิ่มฟีเจอร์ Reverse Geocoding
         // ==========================================
         async function openMapModal() {
             const modal = new bootstrap.Modal(document.getElementById('mapModal'));
@@ -1681,9 +1710,15 @@
             
             autocomplete.bindTo('bounds', map);
             
-            // Event Listeners
+            // Event Listeners - ฟีเจอร์ใหม่: Reverse Geocoding
             marker.addListener('dragend', () => {
+                console.log('Marker drag ended');
                 updateAddressFromMarker();
+            });
+            
+            // เพิ่ม: ตรวจจับการ drag ระหว่างการลาก
+            marker.addListener('drag', () => {
+                updateCoordsFromMarker();
             });
             
             map.addListener('click', (event) => {
@@ -1705,6 +1740,7 @@
                 
                 // อัปเดตที่อยู่
                 document.getElementById('form-address').value = place.formatted_address;
+                document.getElementById('map-search').value = place.formatted_address;
                 updateCoordsFromMarker();
             });
             
@@ -1715,17 +1751,48 @@
             google.maps.event.trigger(map, 'resize');
         };
 
+        // ฟีเจอร์ใหม่: Reverse Geocoding - แปลงพิกัดเป็นที่อยู่
         function updateAddressFromMarker() {
-            if (!geocoder || !marker) return;
+            if (!geocoder || !marker || isGeocodingInProgress) {
+                return;
+            }
             
             const position = marker.getPosition();
+            const addressInput = document.getElementById('form-address');
+            const searchInput = document.getElementById('map-search');
+            
+            // แสดง Loading indicator
+            addressInput.classList.add('address-loading');
+            isGeocodingInProgress = true;
+            
+            console.log('Starting reverse geocoding for:', position.lat(), position.lng());
             
             geocoder.geocode({ location: position }, (results, status) => {
-                if (status === 'OK' && results[0]) {
+                // ลบ Loading indicator
+                addressInput.classList.remove('address-loading');
+                isGeocodingInProgress = false;
+                
+                if (status === 'OK' && results && results[0]) {
                     const address = results[0].formatted_address;
-                    document.getElementById('form-address').value = address;
-                    document.getElementById('map-search').value = address;
+                    
+                    // อัปเดตที่อยู่ในฟอร์ม
+                    addressInput.value = address;
+                    searchInput.value = address;
+                    
+                    // อัปเดตพิกัด
                     updateCoordsFromMarker();
+                    
+                    console.log('Address updated:', address);
+                    
+                    // แสดง Animation สั้นๆ เพื่อบ่งบอกว่าอัปเดตแล้ว
+                    addressInput.style.backgroundColor = '#e8f5e9';
+                    setTimeout(() => {
+                        addressInput.style.backgroundColor = '';
+                    }, 500);
+                    
+                } else {
+                    console.error('Geocoding failed:', status);
+                    showWarning('ไม่สามารถระบุที่อยู่จากตำแหน่งนี้ได้ กรุณากรอกที่อยู่เอง');
                 }
             });
         }
@@ -1748,8 +1815,20 @@
                 return;
             }
             
+            // แสดง loading
+            Swal.fire({
+                title: 'กำลังค้นหาตำแหน่ง...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    Swal.close();
+                    
                     if (!map || !marker) return;
                     
                     const userLocation = {
@@ -1761,10 +1840,30 @@
                     map.setZoom(16);
                     marker.setPosition(userLocation);
                     
+                    // ใช้ Reverse Geocoding เพื่อดึงที่อยู่
                     updateAddressFromMarker();
+                    
+                    showSuccess('พบตำแหน่งของคุณแล้ว');
                 },
                 (error) => {
+                    Swal.close();
                     console.error('Geolocation error:', error);
+                    
+                    let errorMessage = 'ไม่สามารถระบุตำแหน่งได้';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'คุณไม่ได้อนุญาตให้เข้าถึงตำแหน่ง';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'ไม่สามารถระบุตำแหน่งได้';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'หมดเวลาในการค้นหาตำแหน่ง';
+                            break;
+                    }
+                    
+                    showWarning(errorMessage);
                 }
             );
         }
