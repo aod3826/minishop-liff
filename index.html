@@ -387,7 +387,7 @@
 
         /* Map Styles */
         #map {
-            height: 350px;
+            height: 400px;
             width: 100%;
             border-radius: 12px;
             margin-top: 10px;
@@ -401,23 +401,29 @@
             font-family: 'Prompt', sans-serif;
         }
 
-        /* Address Loading Indicator */
-        .address-loading {
-            position: relative;
+        /* Address Status Badge */
+        .address-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            font-weight: 500;
         }
 
-        .address-loading::after {
-            content: '';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            border: 2px solid #e2e8f0;
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .address-status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .address-status.success {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .address-status.error {
+            background: #f8d7da;
+            color: #842029;
         }
 
         /* Modal Styles */
@@ -531,6 +537,10 @@
             .staff-btn {
                 width: 55px;
                 height: 55px;
+            }
+
+            #map {
+                height: 300px;
             }
         }
 
@@ -693,7 +703,7 @@
 
     <!-- Cart Modal -->
     <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">
@@ -743,17 +753,20 @@
 
                         <!-- Address with Map -->
                         <div class="mb-3">
-                            <label class="form-label">ที่อยู่จัดส่ง</label>
+                            <label class="form-label">
+                                ที่อยู่จัดส่ง
+                                <span id="address-status"></span>
+                            </label>
                             <div class="input-group mb-2">
-                                <textarea class="form-control" id="form-address" rows="2" required
-                                          placeholder="บ้านเลขที่, หมู่บ้าน, ซอย, ถนน, ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์"></textarea>
-                                <button class="btn btn-outline-secondary" type="button" onclick="openMapModal()">
+                                <textarea class="form-control" id="form-address" rows="3" required
+                                          placeholder="กดปุ่มแผนที่เพื่อเลือกตำแหน่ง หรือพิมพ์ที่อยู่เอง"></textarea>
+                                <button class="btn btn-outline-primary" type="button" onclick="openMapModal()">
                                     <i class="fas fa-map-marker-alt text-danger"></i>
                                 </button>
                             </div>
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                กดปุ่มแผนที่เพื่อระบุตำแหน่งที่อยู่ให้แม่นยำขึ้น (จะกรอกที่อยู่ให้อัตโนมัติ)
+                            <small class="form-text text-success">
+                                <i class="fas fa-magic me-1"></i>
+                                กดปุ่มแผนที่ → ลากหมุด → ที่อยู่จะกรอกอัตโนมัติ
                             </small>
                         </div>
 
@@ -799,8 +812,19 @@
                         <input type="text" id="map-search" class="form-control border-start-0"
                                placeholder="ค้นหาที่อยู่ เช่น หมู่บ้าน, คอนโด, ห้างสรรพสินค้า...">
                         <button class="btn btn-outline-primary" type="button" onclick="useCurrentLocation()">
-                            <i class="fas fa-location-crosshairs"></i>
+                            <i class="fas fa-location-crosshairs me-1"></i>ตำแหน่งปัจจุบัน
                         </button>
+                    </div>
+
+                    <!-- Current Address Display -->
+                    <div id="current-address-display" class="alert alert-light border mb-3" style="display: none;">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-map-pin text-danger me-2 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block mb-1">ที่อยู่ที่เลือก:</small>
+                                <div id="current-address-text" class="fw-500"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Map Container -->
@@ -812,17 +836,24 @@
                     </div>
 
                     <div class="alert alert-info mt-3 mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        ลากหมุดสีแดง <span class="text-danger">📍</span> ไปยังตำแหน่งที่ต้องการส่งสินค้า
-                        <br>
-                        <small class="text-success"><i class="fas fa-magic me-1"></i>ระบบจะกรอกที่อยู่ให้อัตโนมัติเมื่อคุณเลื่อนหมุด</small>
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-info-circle me-2 mt-1"></i>
+                            <div>
+                                <strong>วิธีใช้งาน:</strong>
+                                <ol class="mb-0 mt-1 ps-3">
+                                    <li>ลากหมุดสีแดง 📍 ไปยังตำแหน่งที่ต้องการ</li>
+                                    <li>ระบบจะแปลงพิกัดเป็นที่อยู่ให้อัตโนมัติ</li>
+                                    <li>กด "ยืนยันตำแหน่ง" เพื่อบันทึก</li>
+                                </ol>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         ยกเลิก
                     </button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-primary" onclick="confirmLocation()">
                         <i class="fas fa-check-circle me-1"></i> ยืนยันตำแหน่งนี้
                     </button>
                 </div>
@@ -841,16 +872,19 @@
         // ==========================================
         const CONFIG = {
             liffId: "2008933274-cQhoTxw9",
-            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec",
+            // ใช้ Google Maps API Key แบบ hardcode สำหรับทดสอบ (ควรเปลี่ยนเป็นของตัวเอง)
+            mapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY" // <-- ใส่ API Key ของคุณที่นี่
         };
 
         // ==========================================
         //  GLOBAL VARIABLES
         // ==========================================
-        let products = [];           // รายการสินค้าทั้งหมด
-        let cart = {};               // ตะกร้าสินค้า {productName: {product, qty}}
-        let userProfile = {};        // ข้อมูลผู้ใช้จาก LINE
-        let selectedCoords = null;   // พิกัดที่เลือกจากแผนที่
+        let products = [];
+        let cart = {};
+        let userProfile = {};
+        let selectedCoords = null;
+        let currentAddress = '';
         
         // Google Maps
         let map = null;
@@ -858,7 +892,7 @@
         let geocoder = null;
         let isMapLoaded = false;
         let autocomplete = null;
-        let isGeocodingInProgress = false; // ป้องกัน Geocoding ซ้ำซ้อน
+        let geocodingTimeout = null; // สำหรับ debounce
 
         // ==========================================
         //  INITIALIZATION
@@ -867,13 +901,8 @@
             console.log('Starting application...');
             
             try {
-                // เริ่มต้น LIFF
                 await initLiff();
-                
-                // โหลดข้อมูลสินค้า
                 await fetchProducts();
-                
-                // อัปเดตตะกร้าเริ่มต้น
                 updateCartUI();
                 
                 console.log('Application initialized successfully');
@@ -893,7 +922,6 @@
                 const url = new URL(CONFIG.scriptUrl);
                 url.searchParams.append('action', action);
                 
-                // เพิ่ม parameters
                 Object.keys(params).forEach(key => {
                     if (params[key] !== undefined && params[key] !== null) {
                         url.searchParams.append(key, params[key]);
@@ -912,7 +940,6 @@
                 return data;
             } catch (error) {
                 console.error(`API Error (${action}):`, error);
-                showError(`ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้: ${error.message}`);
                 return null;
             }
         }
@@ -960,7 +987,6 @@
                     return;
                 }
                 
-                // ดึงข้อมูลโปรไฟล์
                 const profile = await liff.getProfile();
                 userProfile = {
                     userId: profile.userId,
@@ -971,19 +997,13 @@
                 
                 console.log('User profile loaded:', userProfile);
                 
-                // แสดงข้อมูลผู้ใช้
                 showUserProfile();
-                
-                // อัปเดตคะแนนสมาชิก
                 await updateMemberPoints();
-                
-                // ตรวจสอบสิทธิ์พนักงาน
                 await checkStaffAccess();
                 
             } catch (error) {
                 console.error('LIFF Initialization Error:', error);
                 
-                // ถ้า LIFF ล้มเหลว ให้ใช้โหมดทดสอบ
                 userProfile = {
                     userId: 'test_user_' + Date.now(),
                     displayName: 'ผู้ใช้ทดสอบ',
@@ -991,7 +1011,7 @@
                 };
                 
                 showUserProfile();
-                showWarning('กำลังใช้โหมดทดสอบ (LIFF ไม่สามารถเชื่อมต่อได้)');
+                showWarning('กำลังใช้โหมดทดสอบ');
             }
         }
 
@@ -1006,7 +1026,6 @@
                 userImg.alt = userProfile.displayName;
                 userName.textContent = userProfile.displayName;
                 
-                // กรอกชื่อในฟอร์มอัตโนมัติ
                 if (formName) {
                     formName.value = userProfile.displayName;
                 }
@@ -1069,7 +1088,7 @@
         //  PRODUCT MANAGEMENT
         // ==========================================
         async function fetchProducts() {
-            console.log('Fetching products from:', CONFIG.scriptUrl);
+            console.log('Fetching products...');
             
             try {
                 const productList = document.getElementById('product-list');
@@ -1082,56 +1101,36 @@
                     </div>
                 `;
                 
-                // ใช้ URL แบบตรงๆ
                 const apiUrl = CONFIG.scriptUrl + '?action=getProducts';
-                console.log('API URL:', apiUrl);
-                
                 const response = await fetch(apiUrl);
-                console.log('Response status:', response.status, response.statusText);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-                console.log('API response data:', data);
                 
                 if (data && Array.isArray(data)) {
-                    // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
-                    products = data.map(item => {
-                        console.log('Processing item:', item);
-                        
-                        return {
-                            name: item.name || item.Menu || 'ไม่มีชื่อ',
-                            price: parseFloat(item.price || item.Price || 0),
-                            category: item.category || item.Category || 'อื่นๆ',
-                            img: item.img || item.Image || 'https://via.placeholder.com/300x200?text=No+Image',
-                            inStock: item.inStock === true || 
-                                     item.InStock === true || 
-                                     String(item.inStock).toLowerCase() === 'true' ||
-                                     String(item.InStock).toLowerCase() === 'true'
-                        };
-                    });
+                    products = data.map(item => ({
+                        name: item.name || item.Menu || 'ไม่มีชื่อ',
+                        price: parseFloat(item.price || item.Price || 0),
+                        category: item.category || item.Category || 'อื่นๆ',
+                        img: item.img || item.Image || 'https://via.placeholder.com/300x200?text=No+Image',
+                        inStock: item.inStock === true || 
+                                 item.InStock === true || 
+                                 String(item.inStock).toLowerCase() === 'true' ||
+                                 String(item.InStock).toLowerCase() === 'true'
+                    }));
                     
-                    console.log(`Processed ${products.length} products:`, products);
-                    
-                    // Render categories
                     renderCategories();
-                    
-                    // Render products
                     renderProducts(products);
                     
-                    console.log('Products loaded successfully');
-                    
                 } else {
-                    console.error('Invalid data format from API:', data);
-                    showError('ไม่สามารถโหลดข้อมูลสินค้าได้ กรุณาลองใหม่');
+                    throw new Error('Invalid data format');
                 }
                 
             } catch (error) {
                 console.error('Fetch products error:', error);
-                
-                // แสดงข้อมูลตัวอย่างถ้า API ไม่ทำงาน
                 showWarning('กำลังแสดงข้อมูลตัวอย่าง');
                 
                 products = [
@@ -1158,21 +1157,14 @@
 
         function renderCategories() {
             const container = document.getElementById('category-container');
-            if (!container) {
-                console.error('Category container not found');
-                return;
-            }
+            if (!container) return;
             
-            // ดึงหมวดหมู่ทั้งหมดจาก products
             const allCategories = ['ทั้งหมด'];
-            
             products.forEach(product => {
                 if (product.category && !allCategories.includes(product.category)) {
                     allCategories.push(product.category);
                 }
             });
-            
-            console.log('Categories found:', allCategories);
             
             const categoryHTML = allCategories.map(category => `
                 <span class="category-pill ${category === 'ทั้งหมด' ? 'active' : ''}" 
@@ -1182,13 +1174,9 @@
             `).join('');
             
             container.innerHTML = categoryHTML;
-            console.log('Categories rendered');
         }
 
         function filterProduct(category, event) {
-            console.log('Filtering by category:', category);
-            
-            // อัปเดตสถานะปุ่มหมวดหมู่
             document.querySelectorAll('.category-pill').forEach(el => {
                 el.classList.remove('active');
             });
@@ -1197,27 +1185,19 @@
                 event.target.classList.add('active');
             }
             
-            // กรองสินค้า
             let filteredProducts = products;
             if (category !== 'ทั้งหมด') {
                 filteredProducts = products.filter(p => p.category === category);
             }
             
-            console.log(`Filtered ${filteredProducts.length} products`);
             renderProducts(filteredProducts);
         }
 
         function renderProducts(productList) {
-            console.log('Rendering products:', productList);
-            
             const container = document.getElementById('product-list');
-            if (!container) {
-                console.error('Product list container not found');
-                return;
-            }
+            if (!container) return;
             
             if (!productList || productList.length === 0) {
-                console.log('No products to display');
                 container.innerHTML = `
                     <div class="col-12">
                         <div class="empty-state">
@@ -1232,16 +1212,8 @@
                 return;
             }
             
-            console.log(`Rendering ${productList.length} products`);
-            
             const productHTML = productList.map((product, index) => {
-                console.log('Product data:', product);
-                
-                // ตรวจสอบว่าสินค้ามีในสต็อกหรือไม่
                 const isAvailable = product.inStock !== false;
-                console.log(`Product ${product.name}: inStock = ${product.inStock}, isAvailable = ${isAvailable}`);
-                
-                // ตรวจสอบว่ามีรูปภาพหรือไม่
                 const imageUrl = product.img || 'https://via.placeholder.com/300x200?text=No+Image';
                 
                 return `
@@ -1289,27 +1261,23 @@
             }).join('');
             
             container.innerHTML = productHTML;
-            console.log('Products rendered successfully');
         }
 
         // ==========================================
-        //  CART MANAGEMENT - แก้ไข BUG #1
+        //  CART MANAGEMENT
         // ==========================================
         function addToCart(productName) {
-            // หาสินค้าจากชื่อ
             const product = products.find(p => p.name === productName);
             if (!product) {
                 showError('ไม่พบสินค้านี้ในระบบ');
                 return;
             }
             
-            // ตรวจสอบสต็อก
             if (!product.inStock) {
                 showWarning('สินค้านี้หมดแล้ว');
                 return;
             }
             
-            // เพิ่ม/อัปเดตตะกร้า
             if (cart[productName]) {
                 cart[productName].qty += 1;
             } else {
@@ -1319,28 +1287,8 @@
                 };
             }
             
-            // แสดงผลลัพธ์
             showSuccess(`เพิ่ม ${productName} ลงตะกร้าแล้ว`);
             updateCartUI();
-            
-            // แอนิเมชันปุ่ม - แก้ไข: ต้องหา button จาก event
-            try {
-                const button = event.target.closest('button');
-                if (button) {
-                    const originalHTML = button.innerHTML;
-                    button.innerHTML = '<i class="fas fa-check"></i> สำเร็จ';
-                    button.classList.add('btn-success');
-                    button.classList.remove('btn-primary');
-                    
-                    setTimeout(() => {
-                        button.innerHTML = originalHTML;
-                        button.classList.remove('btn-success');
-                        button.classList.add('btn-primary');
-                    }, 1500);
-                }
-            } catch (e) {
-                console.log('Button animation skipped:', e);
-            }
         }
 
         function updateCartUI() {
@@ -1350,12 +1298,10 @@
                 sum + (item.product.price * item.qty), 0
             );
             
-            // อัปเดตตัวเลขในตะกร้า
             document.getElementById('total-qty').textContent = totalQty;
             document.getElementById('total-price').textContent = totalPrice.toLocaleString();
             document.getElementById('modal-total').textContent = totalPrice.toLocaleString();
             
-            // แสดง/ซ่อนแถบตะกร้า - แก้ไข BUG #2
             const cartBar = document.getElementById('cart-bar');
             if (totalQty > 0) {
                 cartBar.style.display = 'flex';
@@ -1363,7 +1309,6 @@
                 cartBar.style.display = 'none';
             }
             
-            // อัปเดตรายการใน Modal
             updateCartModalItems();
         }
 
@@ -1455,16 +1400,14 @@
         }
 
         // ==========================================
-        //  ORDER SUBMISSION - แก้ไข BUG #3
+        //  ORDER SUBMISSION
         // ==========================================
         async function submitOrder() {
-            // ตรวจสอบข้อมูล
             const name = document.getElementById('form-name').value.trim();
             const phone = document.getElementById('form-tel').value.trim();
             const address = document.getElementById('form-address').value.trim();
             const slipFile = document.getElementById('form-slip').files[0];
             
-            // Validation
             if (!name) {
                 showError('กรุณากรอกชื่อผู้รับ');
                 document.getElementById('form-name').focus();
@@ -1494,7 +1437,6 @@
                 return;
             }
             
-            // สร้างข้อความยืนยัน
             const cartItems = Object.values(cart);
             const totalPrice = cartItems.reduce((sum, item) => 
                 sum + (item.product.price * item.qty), 0
@@ -1504,7 +1446,6 @@
                 `${item.product.name} x${item.qty}`
             ).join('\n');
             
-            // ยืนยันการสั่งซื้อ
             const { isConfirmed } = await Swal.fire({
                 title: 'ยืนยันการสั่งซื้อ',
                 html: `
@@ -1529,7 +1470,6 @@
             
             if (!isConfirmed) return;
             
-            // เริ่มต้นส่งออเดอร์
             const submitBtn = document.getElementById('btn-submit');
             const originalBtnText = submitBtn.innerHTML;
             
@@ -1540,16 +1480,13 @@
             `;
             
             try {
-                // แก้ไข BUG: ตรวจสอบขนาดไฟล์ก่อนอัปโหลด
-                const maxSize = 10 * 1024 * 1024; // 10MB
+                const maxSize = 10 * 1024 * 1024;
                 if (slipFile.size > maxSize) {
                     throw new Error('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 10MB)');
                 }
                 
-                // อัปโหลดสลิป
                 const slipBase64 = await fileToBase64(slipFile);
                 
-                // เตรียมข้อมูลออเดอร์
                 const orderData = {
                     action: 'submitOrder',
                     uid: userProfile.userId || 'guest',
@@ -1560,18 +1497,14 @@
                         `${item.product.name} (x${item.qty})`
                     ).join(', '),
                     total: totalPrice,
-                    image: slipBase64.split(',')[1], // เอา base64 อย่างเดียว
+                    image: slipBase64.split(',')[1],
                     mimeType: slipFile.type || 'image/jpeg',
                     coords: selectedCoords ? `${selectedCoords.lat},${selectedCoords.lng}` : ''
                 };
                 
-                console.log('Submitting order:', { ...orderData, image: '[BASE64_DATA]' });
-                
-                // ส่งข้อมูล
                 const result = await postAPI(orderData);
                 
                 if (result && result.result === 'Success') {
-                    // สำเร็จ
                     await Swal.fire({
                         title: 'สำเร็จ!',
                         text: `สั่งซื้อสำเร็จ เลขที่ออเดอร์: ${result.orderId}`,
@@ -1580,17 +1513,16 @@
                         timer: 5000
                     });
                     
-                    // รีเซ็ตตะกร้าและฟอร์ม
                     cart = {};
                     selectedCoords = null;
+                    currentAddress = '';
                     document.getElementById('order-form').reset();
                     document.getElementById('form-name').value = userProfile.displayName || '';
+                    document.getElementById('address-status').innerHTML = '';
                     
-                    // ปิด Modal
                     const cartModal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
                     if (cartModal) cartModal.hide();
                     
-                    // อัปเดต UI
                     updateCartUI();
                     updateMemberPoints();
                     
@@ -1617,196 +1549,242 @@
         }
 
         // ==========================================
-        //  GOOGLE MAPS - เพิ่มฟีเจอร์ Reverse Geocoding
+        //  GOOGLE MAPS - ปรับปรุงใหม่
         // ==========================================
         async function openMapModal() {
             const modal = new bootstrap.Modal(document.getElementById('mapModal'));
             modal.show();
             
-            // โหลด Google Maps API ถ้ายังไม่ได้โหลด
             if (!isMapLoaded) {
-                try {
-                    // ขอ Maps API Key จาก backend
-                    const keyData = await fetchAPI('getMapsKey');
-                    const apiKey = keyData?.key;
-                    
-                    if (!apiKey) {
-                        document.getElementById('map').innerHTML = `
-                            <div class="alert alert-danger m-3">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                ไม่พบ API Key สำหรับแผนที่
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    // โหลด Google Maps API
-                    await loadGoogleMapsAPI(apiKey);
-                    isMapLoaded = true;
-                    
-                } catch (error) {
-                    console.error('Load maps error:', error);
-                    document.getElementById('map').innerHTML = `
-                        <div class="alert alert-danger m-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            โหลดแผนที่ไม่สำเร็จ: ${error.message}
-                        </div>
-                    `;
-                }
+                await loadGoogleMaps();
             }
         }
 
-        function loadGoogleMapsAPI(apiKey) {
-            return new Promise((resolve, reject) => {
-                if (window.google && window.google.maps) {
-                    resolve();
-                    return;
+        async function loadGoogleMaps() {
+            try {
+                // ลองดึง API Key จาก backend ก่อน
+                let apiKey = CONFIG.mapsApiKey;
+                
+                try {
+                    const keyData = await fetchAPI('getMapsKey');
+                    if (keyData && keyData.key) {
+                        apiKey = keyData.key;
+                    }
+                } catch (e) {
+                    console.log('Using hardcoded API key');
                 }
                 
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMap`;
-                script.async = true;
-                script.defer = true;
+                if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
+                    throw new Error('กรุณาตั้งค่า Google Maps API Key ใน CONFIG.mapsApiKey');
+                }
                 
-                script.onload = () => resolve();
-                script.onerror = () => reject(new Error('Failed to load Google Maps'));
+                // โหลด Google Maps Script
+                await new Promise((resolve, reject) => {
+                    if (window.google && window.google.maps) {
+                        resolve();
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=th`;
+                    script.async = true;
+                    script.defer = true;
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error('Failed to load Google Maps'));
+                    document.head.appendChild(script);
+                });
                 
-                document.head.appendChild(script);
-            });
+                // เริ่มต้นแผนที่
+                initializeMap();
+                isMapLoaded = true;
+                
+            } catch (error) {
+                console.error('Load maps error:', error);
+                document.getElementById('map').innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${error.message}
+                    </div>
+                `;
+            }
         }
 
-        window.initGoogleMap = function() {
-            console.log('Google Maps API loaded');
+        function initializeMap() {
+            console.log('Initializing Google Map...');
             
-            // ตั้งค่าแผนที่เริ่มต้น (กรุงเทพ)
+            // ตำแหน่งเริ่มต้น (กรุงเทพฯ)
             const defaultLocation = { lat: 13.7563, lng: 100.5018 };
             
+            // สร้างแผนที่
             map = new google.maps.Map(document.getElementById('map'), {
                 center: defaultLocation,
                 zoom: 15,
                 mapTypeControl: true,
                 streetViewControl: false,
                 fullscreenControl: true,
-                zoomControl: true
+                zoomControl: true,
+                gestureHandling: 'greedy'
             });
             
+            // สร้าง Geocoder
             geocoder = new google.maps.Geocoder();
             
-            // สร้าง marker
+            // สร้าง Marker
             marker = new google.maps.Marker({
                 position: defaultLocation,
                 map: map,
                 draggable: true,
                 title: 'ลากเพื่อเปลี่ยนตำแหน่ง',
-                animation: google.maps.Animation.DROP
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    scaledSize: new google.maps.Size(50, 50)
+                }
             });
             
-            // เพิ่ม Autocomplete
+            // Event: เมื่อหมุดหยุดลาก
+            marker.addListener('dragend', function() {
+                console.log('Marker dragend triggered');
+                const position = marker.getPosition();
+                updateCoordsFromPosition(position);
+                performReverseGeocoding(position);
+            });
+            
+            // Event: คลิกบนแผนที่
+            map.addListener('click', function(event) {
+                console.log('Map clicked');
+                marker.setPosition(event.latLng);
+                updateCoordsFromPosition(event.latLng);
+                performReverseGeocoding(event.latLng);
+            });
+            
+            // ตั้งค่า Autocomplete สำหรับช่องค้นหา
             const searchInput = document.getElementById('map-search');
             autocomplete = new google.maps.places.Autocomplete(searchInput, {
-                fields: ['geometry', 'formatted_address'],
-                types: ['address']
+                fields: ['geometry', 'formatted_address', 'name'],
+                componentRestrictions: { country: 'th' }
             });
             
-            autocomplete.bindTo('bounds', map);
-            
-            // Event Listeners - ฟีเจอร์ใหม่: Reverse Geocoding
-            marker.addListener('dragend', () => {
-                console.log('Marker drag ended');
-                updateAddressFromMarker();
-            });
-            
-            // เพิ่ม: ตรวจจับการ drag ระหว่างการลาก
-            marker.addListener('drag', () => {
-                updateCoordsFromMarker();
-            });
-            
-            map.addListener('click', (event) => {
-                marker.setPosition(event.latLng);
-                updateAddressFromMarker();
-            });
-            
-            autocomplete.addListener('place_changed', () => {
+            autocomplete.addListener('place_changed', function() {
                 const place = autocomplete.getPlace();
                 
                 if (!place.geometry) {
-                    console.log('No geometry for place');
+                    showWarning('ไม่พบสถานที่นี้');
                     return;
                 }
                 
-                map.setCenter(place.geometry.location);
+                const location = place.geometry.location;
+                map.setCenter(location);
                 map.setZoom(17);
-                marker.setPosition(place.geometry.location);
+                marker.setPosition(location);
                 
-                // อัปเดตที่อยู่
-                document.getElementById('form-address').value = place.formatted_address;
-                document.getElementById('map-search').value = place.formatted_address;
-                updateCoordsFromMarker();
+                updateCoordsFromPosition(location);
+                updateAddressDisplay(place.formatted_address || place.name);
             });
             
-            // พยายามใช้ตำแหน่งปัจจุบัน
-            useCurrentLocation();
+            // ลองหาตำแหน่งปัจจุบันของผู้ใช้
+            setTimeout(() => {
+                useCurrentLocation();
+            }, 1000);
             
-            // Trigger resize เมื่อ Modal แสดง
-            google.maps.event.trigger(map, 'resize');
-        };
+            console.log('Map initialized successfully');
+        }
 
-        // ฟีเจอร์ใหม่: Reverse Geocoding - แปลงพิกัดเป็นที่อยู่
-        function updateAddressFromMarker() {
-            if (!geocoder || !marker || isGeocodingInProgress) {
+        function performReverseGeocoding(position) {
+            if (!geocoder) {
+                console.error('Geocoder not initialized');
                 return;
             }
             
-            const position = marker.getPosition();
-            const addressInput = document.getElementById('form-address');
-            const searchInput = document.getElementById('map-search');
-            
-            // แสดง Loading indicator
-            addressInput.classList.add('address-loading');
-            isGeocodingInProgress = true;
-            
             console.log('Starting reverse geocoding for:', position.lat(), position.lng());
             
-            geocoder.geocode({ location: position }, (results, status) => {
-                // ลบ Loading indicator
-                addressInput.classList.remove('address-loading');
-                isGeocodingInProgress = false;
-                
-                if (status === 'OK' && results && results[0]) {
-                    const address = results[0].formatted_address;
+            // แสดงสถานะ Loading
+            updateAddressStatus('loading', 'กำลังค้นหาที่อยู่...');
+            
+            // ยกเลิก timeout ก่อนหน้า (debounce)
+            if (geocodingTimeout) {
+                clearTimeout(geocodingTimeout);
+            }
+            
+            // ตั้ง timeout ใหม่
+            geocodingTimeout = setTimeout(() => {
+                geocoder.geocode({ 
+                    location: {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    },
+                    language: 'th'
+                }, function(results, status) {
+                    console.log('Geocoding status:', status);
+                    console.log('Geocoding results:', results);
                     
-                    // อัปเดตที่อยู่ในฟอร์ม
-                    addressInput.value = address;
-                    searchInput.value = address;
-                    
-                    // อัปเดตพิกัด
-                    updateCoordsFromMarker();
-                    
-                    console.log('Address updated:', address);
-                    
-                    // แสดง Animation สั้นๆ เพื่อบ่งบอกว่าอัปเดตแล้ว
-                    addressInput.style.backgroundColor = '#e8f5e9';
-                    setTimeout(() => {
-                        addressInput.style.backgroundColor = '';
-                    }, 500);
-                    
-                } else {
-                    console.error('Geocoding failed:', status);
-                    showWarning('ไม่สามารถระบุที่อยู่จากตำแหน่งนี้ได้ กรุณากรอกที่อยู่เอง');
-                }
-            });
+                    if (status === 'OK' && results && results[0]) {
+                        const address = results[0].formatted_address;
+                        console.log('Found address:', address);
+                        
+                        updateAddressDisplay(address);
+                        updateAddressStatus('success', '✓ ระบุตำแหน่งสำเร็จ');
+                        
+                        // แสดง Toast แจ้งเตือน
+                        showSuccess('อัปเดตที่อยู่อัตโนมัติแล้ว');
+                        
+                    } else {
+                        console.error('Geocoding failed:', status);
+                        updateAddressStatus('error', '⚠ ไม่พบที่อยู่ กรุณาพิมพ์เอง');
+                        showWarning('ไม่สามารถระบุที่อยู่จากตำแหน่งนี้ได้');
+                    }
+                });
+            }, 800); // รอ 800ms หลังจากหยุดลาก
         }
 
-        function updateCoordsFromMarker() {
-            if (!marker) return;
-            
-            const position = marker.getPosition();
+        function updateCoordsFromPosition(position) {
             selectedCoords = {
                 lat: position.lat(),
                 lng: position.lng()
             };
+            console.log('Updated coords:', selectedCoords);
+        }
+
+        function updateAddressDisplay(address) {
+            currentAddress = address;
             
-            console.log('Selected coordinates:', selectedCoords);
+            // อัปเดตในฟอร์ม
+            document.getElementById('form-address').value = address;
+            
+            // อัปเดตในหน้าแผนที่
+            const displayDiv = document.getElementById('current-address-display');
+            const textDiv = document.getElementById('current-address-text');
+            
+            if (displayDiv && textDiv) {
+                textDiv.textContent = address;
+                displayDiv.style.display = 'block';
+            }
+            
+            // อัปเดตช่องค้นหา
+            document.getElementById('map-search').value = address;
+            
+            console.log('Address updated:', address);
+        }
+
+        function updateAddressStatus(type, message) {
+            const statusEl = document.getElementById('address-status');
+            if (!statusEl) return;
+            
+            let className = 'address-status ';
+            switch(type) {
+                case 'loading':
+                    className += 'loading';
+                    break;
+                case 'success':
+                    className += 'success';
+                    break;
+                case 'error':
+                    className += 'error';
+                    break;
+            }
+            
+            statusEl.className = className;
+            statusEl.textContent = message;
         }
 
         function useCurrentLocation() {
@@ -1815,7 +1793,6 @@
                 return;
             }
             
-            // แสดง loading
             Swal.fire({
                 title: 'กำลังค้นหาตำแหน่ง...',
                 text: 'กรุณารอสักครู่',
@@ -1829,19 +1806,24 @@
                 (position) => {
                     Swal.close();
                     
-                    if (!map || !marker) return;
+                    if (!map || !marker) {
+                        showWarning('แผนที่ยังไม่พร้อม');
+                        return;
+                    }
                     
                     const userLocation = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
                     
+                    console.log('User location:', userLocation);
+                    
                     map.setCenter(userLocation);
                     map.setZoom(16);
                     marker.setPosition(userLocation);
                     
-                    // ใช้ Reverse Geocoding เพื่อดึงที่อยู่
-                    updateAddressFromMarker();
+                    updateCoordsFromPosition(marker.getPosition());
+                    performReverseGeocoding(marker.getPosition());
                     
                     showSuccess('พบตำแหน่งของคุณแล้ว');
                 },
@@ -1864,12 +1846,48 @@
                     }
                     
                     showWarning(errorMessage);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         }
 
+        function confirmLocation() {
+            if (!currentAddress) {
+                showWarning('กรุณาเลือกตำแหน่งบนแผนที่ก่อน');
+                return;
+            }
+            
+            // ปิด Modal
+            const mapModal = bootstrap.Modal.getInstance(document.getElementById('mapModal'));
+            if (mapModal) {
+                mapModal.hide();
+            }
+            
+            // แสดงการยืนยัน
+            showSuccess('บันทึกตำแหน่งเรียบร้อยแล้ว');
+            
+            // อัปเดตสถานะในฟอร์ม
+            updateAddressStatus('success', '✓ ระบุตำแหน่งแล้ว');
+        }
+
+        // Event Listener สำหรับ Modal
+        document.getElementById('mapModal').addEventListener('shown.bs.modal', function() {
+            if (map) {
+                setTimeout(() => {
+                    google.maps.event.trigger(map, 'resize');
+                    if (marker) {
+                        map.setCenter(marker.getPosition());
+                    }
+                }, 300);
+            }
+        });
+
         // ==========================================
-        //  STAFF DASHBOARD
+        //  STAFF DASHBOARD (ย่อเพื่อประหยัดพื้นที่)
         // ==========================================
         function showStaffDashboard() {
             document.getElementById('staff-dashboard').style.display = 'block';
@@ -1882,20 +1900,14 @@
 
         async function refreshDashboard() {
             try {
-                // โหลดสถิติ
                 const stats = await fetchAPI('getOwnerStats');
                 
                 if (stats) {
-                    document.getElementById('stat-today').textContent = 
-                        stats.todaySales?.toLocaleString() || '0';
-                    document.getElementById('stat-orders').textContent = 
-                        stats.totalOrders?.toLocaleString() || '0';
-                    document.getElementById('stat-realized').textContent = 
-                        stats.realizedRevenue?.toLocaleString() || '0';
-                    document.getElementById('stat-pending').textContent = 
-                        stats.pendingRevenue?.toLocaleString() || '0';
+                    document.getElementById('stat-today').textContent = stats.todaySales?.toLocaleString() || '0';
+                    document.getElementById('stat-orders').textContent = stats.totalOrders?.toLocaleString() || '0';
+                    document.getElementById('stat-realized').textContent = stats.realizedRevenue?.toLocaleString() || '0';
+                    document.getElementById('stat-pending').textContent = stats.pendingRevenue?.toLocaleString() || '0';
                     
-                    // แสดงเมนูขายดี
                     const topMenuList = document.getElementById('stat-top-menu');
                     if (stats.topMenus && stats.topMenus.length > 0) {
                         topMenuList.innerHTML = stats.topMenus.map((item, index) => `
@@ -1908,15 +1920,10 @@
                             </li>
                         `).join('');
                     } else {
-                        topMenuList.innerHTML = `
-                            <li class="text-center text-muted py-3">
-                                <i class="fas fa-chart-bar me-2"></i>ไม่มีข้อมูล
-                            </li>
-                        `;
+                        topMenuList.innerHTML = `<li class="text-center text-muted py-3">ไม่มีข้อมูล</li>`;
                     }
                 }
                 
-                // โหลดออเดอร์ล่าสุด
                 const orders = await fetchAPI('getAdminOrders');
                 const orderList = document.getElementById('admin-order-list');
                 
@@ -2036,8 +2043,7 @@
                 html: `<img src="${url}" style="max-width: 100%; border-radius: 10px;" alt="Slip">`,
                 showCloseButton: true,
                 showConfirmButton: false,
-                width: '90%',
-                backdrop: true
+                width: '90%'
             });
         }
 
@@ -2078,30 +2084,12 @@
             });
         }
 
-        // ==========================================
-        //  EVENT LISTENERS
-        // ==========================================
-        // เมื่อ Map Modal แสดง ให้ resize แผนที่
-        document.getElementById('mapModal').addEventListener('shown.bs.modal', function() {
-            if (map) {
-                setTimeout(() => {
-                    google.maps.event.trigger(map, 'resize');
-                    if (marker) {
-                        map.setCenter(marker.getPosition());
-                    }
-                }, 300);
-            }
-        });
-
-        // ป้องกันฟอร์ม submit
+        // ป้องกัน Form Submit
         document.getElementById('order-form').addEventListener('submit', function(e) {
             e.preventDefault();
         });
 
-        // ==========================================
-        //  INITIALIZE ON LOAD
-        // ==========================================
-        console.log('Mini Shop Application loaded successfully');
+        console.log('Mini Shop Application loaded');
     </script>
 </body>
 </html>
