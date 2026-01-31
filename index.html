@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Shop - ระบบร้านน้ำอัจฉริยะ</title>
+    
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
@@ -24,6 +25,7 @@
             font-family: 'Prompt', sans-serif;
             background-color: var(--bg-color);
             padding-bottom: 120px;
+            line-height: 1.6;
         }
         
         .header-cover {
@@ -32,48 +34,110 @@
             border-radius: 0 0 35px 35px;
             color: white;
             margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.2);
         }
         
-        .shop-title { font-size: 1.8rem; font-weight: 700; }
+        .shop-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 5px; }
+        .shop-subtitle { font-size: 0.9rem; opacity: 0.9; }
         
-        /* Queue Badge Styles */
-        .queue-badge {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            display: inline-block;
-            margin: 10px 0;
-            box-shadow: 0 4px 15px rgba(238, 90, 111, 0.3);
+        /* Member Badge */
+        .member-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 10px 15px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 300px;
+        }
+        .user-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
+            border: 2px solid white; object-fit: cover; margin-right: 12px;
+        }
+        .user-name { font-weight: 600; font-size: 0.95rem; }
+        .user-points { font-size: 0.85rem; margin-top: 2px; }
+        
+        /* Categories */
+        .category-scroll {
+            display: flex; overflow-x: auto;
+            padding: 15px 20px; margin: 0 -20px 20px;
+            scrollbar-width: none; gap: 10px;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .category-pill {
+            cursor: pointer; border-radius: 50px;
+            padding: 8px 22px; background: white;
+            border: 1px solid #e2e8f0; white-space: nowrap;
+            transition: all 0.3s; font-weight: 500;
+        }
+        .category-pill.active, .category-pill:hover {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white; border-color: transparent;
+            transform: translateY(-2px);
+        }
+        
+        /* Products */
+        .product-card {
+            border: none; border-radius: 18px;
+            background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px; overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .product-card:hover { transform: translateY(-5px); }
+        .product-img {
+            width: 100%; height: 160px; object-fit: cover;
+        }
+        .product-info { padding: 15px; }
+        .product-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; }
+        .product-price {
+            color: var(--primary-color); font-weight: 700;
+            font-size: 1.1rem; margin-bottom: 10px;
+        }
+        .out-of-stock {
+            filter: grayscale(1); opacity: 0.6;
+        }
+        .stock-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.7); color: white;
+            padding: 4px 12px; border-radius: 8px;
+            font-size: 0.75rem;
+        }
+        
+        /* Cart Bar */
+        .cart-bar {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%); width: 90%; max-width: 500px;
+            background: linear-gradient(135deg, #2d3436, #1a1e21);
+            color: white; border-radius: 16px;
+            padding: 16px 25px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            z-index: 1000; cursor: pointer; display: none;
+        }
+        .cart-items-count {
+            background: white; color: #2d3436;
+            border-radius: 50%; width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; margin-right: 12px;
         }
         
         /* Payment Methods */
         .payment-methods {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; margin-bottom: 20px;
         }
-        
         .payment-option {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 15px 10px; text-align: center;
+            cursor: pointer; transition: all 0.3s; background: white;
         }
-        
-        .payment-option:hover { border-color: var(--primary-color); transform: translateY(-2px); }
+        .payment-option:hover { border-color: var(--primary-color); }
         .payment-option.selected {
             border-color: var(--primary-color);
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
-        
         .payment-option i { font-size: 1.5rem; margin-bottom: 8px; display: block; }
         .payment-option.cod i { color: #10b981; }
         .payment-option.transfer i { color: #3b82f6; }
@@ -81,115 +145,73 @@
         
         /* Item Notes */
         .item-note-input {
-            font-size: 0.85rem;
-            border: 1px dashed #cbd5e1;
-            border-radius: 8px;
-            padding: 6px 10px;
-            margin-top: 8px;
-            width: 100%;
-            background: #f8fafc;
+            font-size: 0.85rem; border: 1px dashed #cbd5e1;
+            border-radius: 8px; padding: 6px 10px;
+            margin-top: 8px; width: 100%; background: #f8fafc;
         }
         
-        /* Tracking Timeline */
-        .tracking-section {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .tracking-queue {
-            font-size: 4rem;
-            font-weight: 800;
+        /* Queue Tracking */
+        .queue-display {
+            font-size: 4rem; font-weight: 800;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin: 20px 0;
         }
-        
-        .status-timeline {
-            display: flex;
-            justify-content: space-between;
-            margin: 30px 0;
-            position: relative;
+        .timeline { display: flex; justify-content: space-between; margin: 30px 0; position: relative; }
+        .timeline::before {
+            content: ''; position: absolute; top: 15px;
+            left: 10%; right: 10%; height: 4px; background: #e2e8f0;
         }
-        
-        .status-timeline::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 10%; right: 10%;
-            height: 4px;
-            background: #e2e8f0;
-            z-index: 0;
-        }
-        
         .timeline-item { flex: 1; text-align: center; position: relative; z-index: 1; }
         .timeline-dot {
             width: 35px; height: 35px; border-radius: 50%;
             background: #e2e8f0; margin: 0 auto 10px;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: bold; transition: all 0.3s;
+            color: white; font-weight: bold;
         }
-        .timeline-item.active .timeline-dot {
-            background: var(--success-color);
-            transform: scale(1.2);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
-        }
-        .timeline-item.pending .timeline-dot {
-            background: var(--warning-color);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        
-        /* Product Cards */
-        .product-card {
-            border: none; border-radius: 18px; overflow: hidden;
-            background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            margin-bottom: 20px; height: 100%; display: flex; flex-direction: column;
-        }
-        .product-img { width: 100%; height: 160px; object-fit: cover; }
-        .product-info { padding: 15px; flex-grow: 1; }
-        .product-price { color: var(--primary-color); font-weight: 700; font-size: 1.1rem; }
-        
-        /* Cart Bar */
-        .cart-bar {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 500px;
-            background: linear-gradient(135deg, #2d3436, #1a1e21);
-            color: white; border-radius: 16px; padding: 16px 25px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 1000; cursor: pointer;
-        }
+        .timeline-item.active .timeline-dot { background: var(--success-color); }
+        .timeline-item.pending .timeline-dot { background: var(--warning-color); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
         
         /* Staff Dashboard */
-        .staff-dashboard-overlay {
+        .staff-dashboard {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 2000;
             overflow-y: auto; display: none;
         }
-        
         .stat-card {
             background: linear-gradient(135deg, #00b09b, #96c93d);
-            color: white; border-radius: 16px; padding: 25px; margin-bottom: 25px;
+            color: white; border-radius: 16px;
+            padding: 25px; margin-bottom: 25px;
+        }
+        
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed; top: 10px; left: 10px;
+            background: rgba(0,0,0,0.8); color: #0f0;
+            padding: 10px; border-radius: 8px;
+            font-family: monospace; font-size: 12px;
+            z-index: 9999; max-width: 80%;
+            display: none;
         }
     </style>
 </head>
 <body>
+    <!-- Debug Panel (กด Alt+D เพื่อแสดง) -->
+    <div id="debug-panel" class="debug-panel"></div>
+
     <!-- Header -->
     <div class="header-cover text-center">
         <h1 class="shop-title"><i class="fas fa-store me-2"></i>Mini Shop</h1>
-        <p>ระบบร้านน้ำอัจฉริยะ</p>
+        <p class="shop-subtitle">ระบบร้านน้ำอัจฉริยะ</p>
         
-        <div id="profile-info" class="d-none">
-            <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 15px; padding: 10px 15px; display: inline-flex; align-items: center; max-width: 300px;">
-                <img id="user-img" src="" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; margin-right: 12px;">
+        <div id="profile-info" class="d-none animate__animated animate__fadeInUp">
+            <div class="member-badge">
+                <img id="user-img" src="" class="user-avatar" alt="Profile">
                 <div style="text-align: left;">
-                    <div id="user-name" style="font-weight: 600;">กำลังโหลด...</div>
-                    <div id="user-points-display" style="font-size: 0.85rem;">
-                        <i class="fas fa-coins text-warning me-1"></i>
-                        <span id="points-text">0 แต้ม</span>
+                    <div id="user-name" class="user-name">กำลังโหลด...</div>
+                    <div id="user-points" class="user-points text-warning">
+                        <i class="fas fa-coins"></i> <span id="points-text">0 แต้ม</span>
                     </div>
                 </div>
             </div>
@@ -198,10 +220,17 @@
 
     <!-- Main Content -->
     <div class="container">
-        <div class="category-scroll d-flex overflow-auto mb-4" style="gap: 10px;" id="category-container">
-            <span class="badge bg-primary rounded-pill p-2" onclick="filterProduct('all')" style="cursor: pointer;">ทั้งหมด</span>
+        <!-- Status Alert -->
+        <div id="status-alert" class="alert alert-info text-center d-none">
+            <i class="fas fa-circle-notch fa-spin"></i> กำลังเชื่อมต่อระบบ...
         </div>
-        
+
+        <!-- Categories -->
+        <div class="category-scroll" id="category-container">
+            <span class="category-pill active" onclick="filterCategory('all')">ทั้งหมด</span>
+        </div>
+
+        <!-- Products -->
         <div class="row" id="product-list">
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-primary"></div>
@@ -210,10 +239,17 @@
         </div>
     </div>
 
+    <!-- Staff Button -->
+    <div id="staff-entry" class="position-fixed d-none" style="bottom: 100px; right: 20px; z-index: 999;">
+        <button class="btn btn-dark rounded-circle" style="width: 60px; height: 60px;" onclick="showStaffDashboard()">
+            <i class="fas fa-chart-pie"></i>
+        </button>
+    </div>
+
     <!-- Cart Bar -->
-    <div class="cart-bar" id="cart-bar" onclick="openCartModal()" style="display: none;">
+    <div class="cart-bar animate__animated animate__fadeInUp" id="cart-bar" onclick="openCartModal()">
         <div class="d-flex align-items-center">
-            <div style="background: white; color: #2d3436; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px;" id="total-qty">0</div>
+            <div class="cart-items-count" id="total-qty">0</div>
             <span style="font-weight: 600;">ตะกร้าสินค้า</span>
         </div>
         <div style="font-weight: 700; font-size: 1.3rem;">
@@ -221,15 +257,8 @@
         </div>
     </div>
 
-    <!-- Staff Button -->
-    <div id="staff-entry" class="position-fixed d-none" style="bottom: 110px; right: 20px; z-index: 999;">
-        <button class="btn btn-dark rounded-circle" style="width: 60px; height: 60px;" onclick="showStaffDashboard()">
-            <i class="fas fa-chart-pie fa-lg"></i>
-        </button>
-    </div>
-
     <!-- Cart Modal -->
-    <div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -237,63 +266,65 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="cart-items" class="mb-4">
+                    <!-- Cart Items -->
+                    <div id="cart-items" class="mb-3" style="max-height: 300px; overflow-y: auto;">
                         <div class="text-center text-muted py-4">ไม่มีสินค้าในตะกร้า</div>
                     </div>
-                    
-                    <div class="card bg-light mb-4">
+
+                    <!-- Total -->
+                    <div class="card bg-light mb-3">
                         <div class="card-body d-flex justify-content-between align-items-center">
-                            <span class="text-muted fw-bold">ยอดรวม</span>
+                            <span class="fw-bold">ยอดรวม</span>
                             <span class="fs-4 fw-bold text-primary"><span id="modal-total">0</span> ฿</span>
                         </div>
                     </div>
-                    
+
                     <!-- Payment Methods -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label class="form-label fw-bold"><i class="fas fa-wallet me-2"></i>วิธีชำระเงิน</label>
                         <div class="payment-methods">
                             <div class="payment-option selected" onclick="selectPayment('cod', this)">
                                 <i class="fas fa-money-bill-wave"></i>
                                 <div class="small fw-bold">เงินสด</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">ปลายทาง</div>
                             </div>
                             <div class="payment-option" onclick="selectPayment('transfer', this)">
                                 <i class="fas fa-qrcode"></i>
                                 <div class="small fw-bold">โอนเงิน</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">แนบสลิป</div>
                             </div>
                             <div class="payment-option" onclick="selectPayment('debt', this)">
                                 <i class="fas fa-handshake"></i>
                                 <div class="small fw-bold">ค้างจ่าย</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">ลูกค้าประจำ</div>
                             </div>
                         </div>
                         <input type="hidden" id="payment-method" value="cod">
                     </div>
-                    
+
                     <!-- Slip Upload (Hidden by default) -->
                     <div class="mb-3 d-none" id="slip-section">
-                        <label class="form-label text-danger">หลักฐานการโอน</label>
+                        <label class="form-label text-danger"><i class="fas fa-receipt me-2"></i>หลักฐานการโอน</label>
                         <input type="file" class="form-control" id="form-slip" accept="image/*">
+                        <div class="form-text">อัปโหลดรูปสลิปการโอนเงิน</div>
                     </div>
-                    
+
+                    <!-- Form -->
                     <form id="order-form">
                         <div class="mb-3">
                             <label class="form-label">ชื่อผู้รับ</label>
-                            <input type="text" class="form-control" id="form-name" required>
+                            <input type="text" class="form-control" id="form-name" required placeholder="ชื่อ-นามสกุล">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">เบอร์โทร</label>
-                            <input type="tel" class="form-control" id="form-tel" required pattern="[0-9]{10}">
+                            <label class="form-label">เบอร์โทรศัพท์</label>
+                            <input type="tel" class="form-control" id="form-tel" required pattern="[0-9]{10}" placeholder="0812345678">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">ที่อยู่</label>
-                            <div class="input-group">
-                                <textarea class="form-control" id="form-address" rows="2" required></textarea>
-                                <button class="btn btn-outline-secondary" type="button" onclick="openMapModal()">
-                                    <i class="fas fa-map-marker-alt text-danger"></i>
-                                </button>
-                            </div>
+                            <label class="form-label">ที่อยู่จัดส่ง</label>
+                            <textarea class="form-control" id="form-address" rows="2" required placeholder="บ้านเลขที่, ซอย, ถนน, ตำบล"></textarea>
                         </div>
                     </form>
-                    
+
                     <button type="button" class="btn btn-primary w-100 py-3 fw-bold" id="btn-submit" onclick="submitOrder()">
                         <i class="fas fa-paper-plane me-2"></i>ยืนยันการสั่งซื้อ
                     </button>
@@ -302,170 +333,355 @@
         </div>
     </div>
 
-    <!-- Tracking Modal -->
-    <div class="modal fade" id="trackingModal" tabindex="-1" data-bs-backdrop="static">
+    <!-- Queue/Tracking Modal -->
+    <div class="modal fade" id="queueModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-body p-0">
-                    <div class="tracking-section">
-                        <h5 class="fw-bold">ติดตามออเดอร์</h5>
-                        <div class="tracking-queue" id="tracking-queue-num">A000</div>
-                        <p class="text-muted">เลขที่ออเดอร์: <span id="tracking-order-id">-</span></p>
-                        
-                        <div class="status-timeline" id="status-timeline">
-                            <div class="timeline-item active">
-                                <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                                <div class="small">รับออเดอร์</div>
-                            </div>
-                            <div class="timeline-item pending">
-                                <div class="timeline-dot"><i class="fas fa-blender"></i></div>
-                                <div class="small">กำลังทำ</div>
-                            </div>
-                            <div class="timeline-item">
-                                <div class="timeline-dot"><i class="fas fa-mug-hot"></i></div>
-                                <div class="small">เสร็จแล้ว</div>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-primary w-100 rounded-pill" onclick="location.reload()">ปิด</button>
+                <div class="modal-body text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle text-success fa-3x"></i>
                     </div>
+                    <h4 class="fw-bold mb-2">สั่งซื้อสำเร็จ!</h4>
+                    <p class="text-muted">เลขที่ออเดอร์: <span id="queue-order-id" class="fw-bold"></span></p>
+                    
+                    <div class="queue-display" id="queue-number">A000</div>
+                    <p class="text-muted mb-4">รอการยืนยันจากทางร้าน</p>
+
+                    <div class="timeline" id="status-timeline">
+                        <div class="timeline-item active">
+                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                            <div class="small">รับออเดอร์</div>
+                        </div>
+                        <div class="timeline-item pending">
+                            <div class="timeline-dot"><i class="fas fa-blender"></i></div>
+                            <div class="small">กำลังทำ</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"><i class="fas fa-mug-hot"></i></div>
+                            <div class="small">เสร็จแล้ว</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-100 rounded-pill" onclick="closeQueue()">
+                        ตกลง
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Staff Dashboard -->
-    <div id="staff-dashboard" class="staff-dashboard-overlay">
+    <div id="staff-dashboard" class="staff-dashboard">
         <div class="bg-white p-3 border-bottom sticky-top">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="m-0 fw-bold"><i class="fas fa-chart-line me-2 text-primary"></i>แดชบอร์ด</h5>
-                <button class="btn btn-sm btn-light" onclick="hideStaffDashboard()"><i class="fas fa-times"></i></button>
+            <div class="container d-flex justify-content-between align-items-center">
+                <h5 class="m-0 fw-bold"><i class="fas fa-chart-line me-2 text-primary"></i>แดชบอร์ดผู้ดูแล</h5>
+                <button class="btn btn-sm btn-light" onclick="hideStaffDashboard()">
+                    <i class="fas fa-times"></i> ปิด
+                </button>
             </div>
         </div>
+        
         <div class="container mt-4 pb-5">
             <div class="stat-card">
                 <h6 class="fw-bold mb-3">ยอดขายวันนี้</h6>
                 <div class="row text-center">
                     <div class="col-6 border-end">
-                        <small>ยอดรวม</small>
+                        <div class="small opacity-75">ยอดรวม</div>
                         <div class="fw-bold fs-3" id="stat-today">0</div>
+                        <div class="small">บาท</div>
                     </div>
                     <div class="col-6">
-                        <small>ออเดอร์</small>
+                        <div class="small opacity-75">จำนวนออเดอร์</div>
                         <div class="fw-bold fs-3" id="stat-orders">0</div>
+                        <div class="small">รายการ</div>
                     </div>
                 </div>
             </div>
-            <div id="admin-order-list"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0"><i class="fas fa-list me-2"></i>รายการล่าสุด</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i> รีเฟรช
+                </button>
+            </div>
+            
+            <div id="admin-order-list">
+                <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary"></div>
+                    <p class="text-muted mt-2">กำลังโหลด...</p>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        // CONFIG
+        // ==========================================
+        // CONFIGURATION - แก้ไขตรงนี้ถ้า URL เปลี่ยน
+        // ==========================================
         const CONFIG = {
-            liffId: "2008933274-cQhoTxw9", // แก้ไข LIFF ID ตรงนี้
-            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec" // แก้ไข URL ตรงนี้
+            liffId: "2008933274-cQhoTxw9", // LIFF ID ของคุณ
+            scriptUrl: "https://script.google.com/macros/s/AKfycbzKGEIllWVMwLiI60gzOW_I7FpRnu7MGT8dsORN58q0LD0pPhOJSi5KiSZqesg-Z4i3/exec"
         };
 
-        // GLOBALS
+        // ==========================================
+        // GLOBAL VARIABLES
+        // ==========================================
         let products = [];
         let cart = {};
         let userProfile = {};
-        let selectedPaymentMethod = 'cod';
+        let selectedPayment = 'cod';
         let currentOrderId = null;
+        let isStaff = false;
 
-        // INIT
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
         window.onload = async function() {
-            await initLiff();
-            await fetchProducts();
+            logDebug('Starting app...');
+            logDebug('URL: ' + CONFIG.scriptUrl);
+            
+            showStatus('กำลังเริ่มต้นระบบ...', 'info');
+            
+            try {
+                await initLiff();
+                await fetchProducts();
+                showStatus('', 'none');
+            } catch (error) {
+                console.error('Init error:', error);
+                showStatus('เกิดข้อผิดพลาด: ' + error.message, 'danger');
+            }
         };
 
+        // Debug function
+        function logDebug(msg) {
+            console.log(msg);
+            const panel = document.getElementById('debug-panel');
+            if (panel) {
+                panel.innerHTML += new Date().toLocaleTimeString() + ': ' + msg + '<br>';
+            }
+        }
+
+        // Toggle debug panel with Alt+D
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey && e.key === 'd') {
+                const panel = document.getElementById('debug-panel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        function showStatus(msg, type) {
+            const alert = document.getElementById('status-alert');
+            if (!msg) {
+                alert.classList.add('d-none');
+                return;
+            }
+            alert.className = 'alert alert-' + type + ' text-center';
+            alert.innerHTML = type === 'info' ? '<i class="fas fa-circle-notch fa-spin"></i> ' + msg : msg;
+            alert.classList.remove('d-none');
+        }
+
+        // ==========================================
         // LIFF
+        // ==========================================
         async function initLiff() {
             try {
+                logDebug('Initializing LIFF...');
                 await liff.init({ liffId: CONFIG.liffId });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
                 
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+
                 const profile = await liff.getProfile();
                 userProfile = {
                     userId: profile.userId,
                     displayName: profile.displayName,
                     pictureUrl: profile.pictureUrl || 'https://via.placeholder.com/150'
                 };
+
+                logDebug('LIFF Success: ' + userProfile.displayName);
                 
+                // Update UI
                 document.getElementById('user-img').src = userProfile.pictureUrl;
                 document.getElementById('user-name').textContent = userProfile.displayName;
                 document.getElementById('form-name').value = userProfile.displayName;
                 document.getElementById('profile-info').classList.remove('d-none');
-                
+
                 // Check staff
-                const res = await fetch(`${CONFIG.scriptUrl}?action=checkStaff&uid=${userProfile.userId}`);
-                const data = await res.json();
-                if (data.isStaff) document.getElementById('staff-entry').classList.remove('d-none');
-                
-                // Get points
-                const memberRes = await fetch(`${CONFIG.scriptUrl}?action=getMember&uid=${userProfile.userId}&name=${userProfile.displayName}`);
+                const staffRes = await fetch(`${CONFIG.scriptUrl}?action=checkStaff&uid=${userProfile.userId}`);
+                const staffData = await staffRes.json();
+                if (staffData.isStaff) {
+                    isStaff = true;
+                    document.getElementById('staff-entry').classList.remove('d-none');
+                }
+
+                // Load member points
+                const memberRes = await fetch(`${CONFIG.scriptUrl}?action=getMember&uid=${userProfile.userId}&name=${encodeURIComponent(userProfile.displayName)}`);
                 const memberData = await memberRes.json();
                 if (memberData.points !== undefined) {
                     document.getElementById('points-text').textContent = `${memberData.points} แต้ม (${memberData.rank})`;
                 }
-                
-            } catch (e) {
-                console.error('LIFF Error:', e);
+
+            } catch (error) {
+                logDebug('LIFF Error: ' + error.message);
+                // Continue as guest mode
+                userProfile = { userId: 'guest_' + Date.now(), displayName: 'ผู้ใช้ทั่วไป' };
+                document.getElementById('form-name').value = userProfile.displayName;
             }
         }
 
-        // API
+        // ==========================================
+        // API FUNCTIONS
+        // ==========================================
         async function fetchAPI(action, params = {}) {
             const url = new URL(CONFIG.scriptUrl);
             url.searchParams.append('action', action);
-            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-            const res = await fetch(url);
-            return await res.json();
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null) {
+                    url.searchParams.append(key, params[key]);
+                }
+            });
+            
+            logDebug('Fetching: ' + action);
+            const response = await fetch(url.toString());
+            
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            
+            const data = await response.json();
+            logDebug('Response: ' + JSON.stringify(data).substring(0, 100));
+            return data;
         }
 
         async function postAPI(payload) {
-            const res = await fetch(CONFIG.scriptUrl, {
+            logDebug('POST: ' + payload.action);
+            const response = await fetch(CONFIG.scriptUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            return await res.json();
+            
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            
+            return await response.json();
         }
 
+        // ==========================================
         // PRODUCTS
+        // ==========================================
         async function fetchProducts() {
+            logDebug('Loading products...');
+            showStatus('กำลังโหลดเมนู...', 'info');
+            
             try {
-                const products = await fetchAPI('getProducts');
+                const data = await fetchAPI('getProducts');
+                
+                // Handle error from server
+                if (data.error) {
+                    throw new Error(data.message || 'Server error');
+                }
+                
+                // Handle different response formats
+                let productList = [];
+                if (data.success && Array.isArray(data.products)) {
+                    productList = data.products;
+                    logDebug('Loaded ' + productList.length + ' products (new format)');
+                } else if (Array.isArray(data)) {
+                    productList = data;
+                    logDebug('Loaded ' + productList.length + ' products (old format)');
+                } else {
+                    throw new Error('ข้อมูลไม่ถูกต้อง');
+                }
+
+                if (productList.length === 0) {
+                    document.getElementById('product-list').innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-utensils text-muted fa-3x mb-3"></i>
+                            <p class="text-muted">ไม่พบสินค้าในระบบ</p>
+                            <button class="btn btn-outline-primary btn-sm" onclick="fetchProducts()">
+                                <i class="fas fa-redo"></i> ลองใหม่
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                products = productList;
                 renderProducts(products);
                 renderCategories(products);
-            } catch (e) {
-                console.error(e);
+                showStatus('', 'none');
+                
+            } catch (error) {
+                logDebug('Error: ' + error.message);
+                document.getElementById('product-list').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <h5><i class="fas fa-exclamation-circle"></i> โหลดข้อมูลไม่สำเร็จ</h5>
+                            <p>${error.message}</p>
+                            <hr>
+                            <p class="mb-0 small text-muted">ตรวจสอบว่า:<br>
+                            1. Deploy Apps Script ถูกต้อง<br>
+                            2. ชื่อ Sheets ตรงกับ "Minishop Database - Menu"<br>
+                            3. แถวที่ 2 มีข้อมูลสินค้า</p>
+                            <button class="btn btn-outline-danger btn-sm mt-2" onclick="fetchProducts()">
+                                <i class="fas fa-redo"></i> ลองใหม่
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
         function renderCategories(products) {
-            const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
+            const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
             const container = document.getElementById('category-container');
-            cats.forEach(cat => {
-                container.innerHTML += `<span class="badge bg-light text-dark rounded-pill p-2" onclick="filterProduct('${cat}')" style="cursor: pointer;">${cat}</span>`;
+            
+            // Keep "All" button and add others
+            const allBtn = container.querySelector('.category-pill');
+            container.innerHTML = '';
+            container.appendChild(allBtn);
+            
+            categories.forEach(cat => {
+                const span = document.createElement('span');
+                span.className = 'category-pill';
+                span.textContent = cat;
+                span.onclick = () => filterCategory(cat, span);
+                container.appendChild(span);
             });
         }
 
         function renderProducts(productList) {
             const container = document.getElementById('product-list');
-            container.innerHTML = productList.map(p => `
-                <div class="col-6 col-md-4 mb-3">
-                    <div class="product-card">
-                        <img src="${p.img}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200'">
+            
+            if (!productList || productList.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-muted">ไม่พบสินค้า</div>';
+                return;
+            }
+
+            container.innerHTML = productList.map((p, index) => `
+                <div class="col-6 col-md-4 col-lg-3 mb-3 animate__animated animate__fadeIn" style="animation-delay: ${index * 50}ms">
+                    <div class="product-card ${p.inStock === false ? 'out-of-stock' : ''}">
+                        <div style="position: relative;">
+                            <img src="${p.img || 'https://via.placeholder.com/300x200?text=No+Image'}" 
+                                 class="product-img" 
+                                 onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                            ${p.inStock === false ? '<div class="stock-badge">หมด</div>' : ''}
+                        </div>
                         <div class="product-info">
-                            <div class="fw-bold mb-2">${p.name}</div>
-                            <div class="product-price">${p.price} ฿</div>
-                            <button class="btn btn-sm btn-primary w-100" onclick="addToCart('${p.name}')">
-                                <i class="fas fa-plus"></i> เพิ่ม
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">${parseFloat(p.price).toLocaleString()} ฿</div>
+                            <button class="btn btn-sm ${p.inStock === false ? 'btn-secondary disabled' : 'btn-primary'} w-100" 
+                                    ${p.inStock === false ? 'disabled' : `onclick="addToCart('${escapeHtml(p.name)}')"`}>
+                                ${p.inStock === false ? '<i class="fas fa-ban"></i> หมด' : '<i class="fas fa-plus"></i> เพิ่ม'}
                             </button>
                         </div>
                     </div>
@@ -473,58 +689,78 @@
             `).join('');
         }
 
-        function filterProduct(cat) {
-            // Simple filter implementation
-            fetchAPI('getProducts').then(products => {
-                if (cat !== 'all') {
-                    products = products.filter(p => p.category === cat);
-                }
-                renderProducts(products);
-            });
+        function escapeHtml(text) {
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
-        // CART
+        function filterCategory(category, element) {
+            // Update active state
+            document.querySelectorAll('.category-pill').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+            
+            // Filter
+            if (category === 'all') {
+                renderProducts(products);
+            } else {
+                const filtered = products.filter(p => p.category === category);
+                renderProducts(filtered);
+            }
+        }
+
+        // ==========================================
+        // CART FUNCTIONS
+        // ==========================================
         function addToCart(productName) {
-            const product = { name: productName, price: 50, img: '' }; // Simplified
+            const product = products.find(p => p.name === productName);
+            if (!product) return;
+            
             if (cart[productName]) {
                 cart[productName].qty++;
             } else {
-                cart[productName] = { product, qty: 1, notes: '' };
+                cart[productName] = {
+                    product: product,
+                    qty: 1,
+                    notes: ''
+                };
             }
+            
             updateCartUI();
-            Swal.fire({ title: 'เพิ่มแล้ว', text: productName, icon: 'success', timer: 1000, showConfirmButton: false });
+            
+            // Toast notification
+            Swal.fire({
+                title: 'เพิ่มแล้ว',
+                text: productName,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500
+            });
         }
 
         function updateCartUI() {
             const items = Object.values(cart);
-            const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
-            const totalPrice = items.reduce((sum, i) => sum + (i.product.price * i.qty), 0);
+            const qty = items.reduce((sum, i) => sum + i.qty, 0);
+            const total = items.reduce((sum, i) => sum + (i.product.price * i.qty), 0);
             
-            document.getElementById('total-qty').textContent = totalQty;
-            document.getElementById('total-price').textContent = totalPrice.toLocaleString();
-            document.getElementById('modal-total').textContent = totalPrice.toLocaleString();
-            document.getElementById('cart-bar').style.display = totalQty > 0 ? 'flex' : 'none';
+            document.getElementById('total-qty').textContent = qty;
+            document.getElementById('total-price').textContent = total.toLocaleString();
+            document.getElementById('modal-total').textContent = total.toLocaleString();
+            
+            const cartBar = document.getElementById('cart-bar');
+            cartBar.style.display = qty > 0 ? 'flex' : 'none';
         }
 
-        function updateItemNote(productName, note) {
-            if (cart[productName]) cart[productName].notes = note;
+        function openCartModal() {
+            if (Object.keys(cart).length === 0) {
+                Swal.fire('แจ้งเตือน', 'กรุณาเลือกสินค้าก่อน', 'warning');
+                return;
+            }
+            renderCartItems();
+            new bootstrap.Modal(document.getElementById('cartModal')).show();
         }
 
-        function changeCartQty(productName, delta) {
-            if (!cart[productName]) return;
-            cart[productName].qty += delta;
-            if (cart[productName].qty <= 0) delete cart[productName];
-            updateCartUI();
-            updateCartModalItems();
-        }
-
-        function removeFromCart(productName) {
-            delete cart[productName];
-            updateCartUI();
-            updateCartModalItems();
-        }
-
-        function updateCartModalItems() {
+        function renderCartItems() {
             const container = document.getElementById('cart-items');
             const items = Object.values(cart);
             
@@ -532,139 +768,190 @@
                 container.innerHTML = '<div class="text-center text-muted py-4">ไม่มีสินค้า</div>';
                 return;
             }
-            
+
             container.innerHTML = items.map(item => `
                 <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                    <img src="${item.product.img}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">
                     <div class="flex-grow-1">
                         <div class="fw-bold">${item.product.name}</div>
-                        <div class="text-muted small">${item.product.price} x ${item.qty}</div>
-                        <input type="text" class="item-note-input" placeholder="📝 โน้ตพิเศษ..." 
-                               value="${item.notes}" onchange="updateItemNote('${item.product.name}', this.value)">
+                        <div class="text-muted small">${item.product.price.toLocaleString()} x ${item.qty}</div>
+                        <input type="text" class="item-note-input" 
+                               placeholder="📝 โน้ตพิเศษ (เช่น ไม่หวาน)" 
+                               value="${item.notes}" 
+                               onchange="updateItemNote('${escapeHtml(item.product.name)}', this.value)">
                     </div>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="changeCartQty('${item.product.name}', -1)">-</button>
-                        <span class="mx-2 fw-bold">${item.qty}</span>
-                        <button class="btn btn-sm btn-outline-primary" onclick="changeCartQty('${item.product.name}', 1)">+</button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeFromCart('${item.product.name}')"><i class="fas fa-trash"></i></button>
+                    <div class="d-flex align-items-center" style="gap: 8px;">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${escapeHtml(item.product.name)}', -1)">-</button>
+                        <span class="fw-bold">${item.qty}</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="changeQty('${escapeHtml(item.product.name)}', 1)">+</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeItem('${escapeHtml(item.product.name)}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function openCartModal() {
-            if (Object.keys(cart).length === 0) return;
-            updateCartModalItems();
-            new bootstrap.Modal(document.getElementById('cartModal')).show();
+        function updateItemNote(name, note) {
+            if (cart[name]) cart[name].notes = note;
         }
 
+        function changeQty(name, delta) {
+            if (!cart[name]) return;
+            cart[name].qty += delta;
+            if (cart[name].qty <= 0) delete cart[name];
+            updateCartUI();
+            renderCartItems();
+        }
+
+        function removeItem(name) {
+            delete cart[name];
+            updateCartUI();
+            renderCartItems();
+        }
+
+        // ==========================================
         // PAYMENT
+        // ==========================================
         function selectPayment(method, el) {
-            selectedPaymentMethod = method;
+            selectedPayment = method;
             document.getElementById('payment-method').value = method;
+            
             document.querySelectorAll('.payment-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             
             const slipSection = document.getElementById('slip-section');
-            const slipInput = document.getElementById('form-slip');
-            
             if (method === 'transfer') {
                 slipSection.classList.remove('d-none');
-                slipInput.required = true;
             } else {
                 slipSection.classList.add('d-none');
-                slipInput.required = false;
-                slipInput.value = '';
+                document.getElementById('form-slip').value = '';
             }
         }
 
-        // SUBMIT ORDER
+        // ==========================================
+        // ORDER SUBMISSION
+        // ==========================================
         async function submitOrder() {
-            const name = document.getElementById('form-name').value;
-            const phone = document.getElementById('form-tel').value;
-            const address = document.getElementById('form-address').value;
+            const name = document.getElementById('form-name').value.trim();
+            const phone = document.getElementById('form-tel').value.trim();
+            const address = document.getElementById('form-address').value.trim();
             const slipFile = document.getElementById('form-slip').files[0];
-            
+
             if (!name || !phone || !address) {
                 Swal.fire('กรุณากรอกข้อมูลให้ครบ', '', 'warning');
                 return;
             }
-            
-            if (selectedPaymentMethod === 'transfer' && !slipFile) {
-                Swal.fire('กรุณาแนบสลิป', '', 'warning');
+
+            if (selectedPayment === 'transfer' && !slipFile) {
+                Swal.fire('กรุณาแนบสลิปการโอนเงิน', '', 'warning');
                 return;
             }
-            
+
+            // Prepare items with notes
             const items = Object.values(cart).map(i => {
                 let text = `${i.product.name} (x${i.qty})`;
                 if (i.notes) text += ` [${i.notes}]`;
                 return text;
             }).join(', ');
-            
+
             const total = Object.values(cart).reduce((sum, i) => sum + (i.product.price * i.qty), 0);
-            
+
             // Confirm
-            const { isConfirmed } = await Swal.fire({
+            const confirm = await Swal.fire({
                 title: 'ยืนยันการสั่งซื้อ?',
-                html: `ยอดรวม: <b>${total} บาท</b><br>วิธีชำระ: ${selectedPaymentMethod}`,
+                html: `<strong>ยอดรวม: ${total.toLocaleString()} บาท</strong><br>ชำระโดย: ${getPaymentText(selectedPayment)}`,
                 icon: 'question',
-                showCancelButton: true
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก'
             });
-            
-            if (!isConfirmed) return;
-            
-            // Upload
-            let slipBase64 = '';
-            if (slipFile) {
-                slipBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(slipFile);
-                });
-            }
-            
-            const payload = {
-                action: 'submitOrder',
-                uid: userProfile.userId || 'guest',
-                name, phone, address, items, total,
-                paymentMethod: selectedPaymentMethod,
-                paymentStatus: selectedPaymentMethod === 'cod' ? 'pending' : (selectedPaymentMethod === 'debt' ? 'debt' : 'verification_needed'),
-                image: slipBase64,
-                mimeType: slipFile ? slipFile.type : ''
-            };
-            
+
+            if (!confirm.isConfirmed) return;
+
+            // Loading
+            const btn = document.getElementById('btn-submit');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังส่ง...';
+
             try {
-                const res = await postAPI(payload);
-                if (res.result === 'Success') {
-                    currentOrderId = res.orderId;
-                    showTracking(res.queueNumber, res.orderId);
+                // Upload slip if exists
+                let imageBase64 = '';
+                if (slipFile) {
+                    imageBase64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(slipFile);
+                    });
+                }
+
+                const payload = {
+                    action: 'submitOrder',
+                    uid: userProfile.userId || 'guest',
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    items: items,
+                    total: total,
+                    paymentMethod: selectedPayment,
+                    paymentStatus: selectedPayment === 'cod' ? 'pending' : (selectedPayment === 'debt' ? 'debt' : 'verification_needed'),
+                    image: imageBase64,
+                    mimeType: slipFile ? slipFile.type : ''
+                };
+
+                logDebug('Submitting order...');
+                const result = await postAPI(payload);
+                logDebug('Result: ' + JSON.stringify(result));
+
+                if (result.result === 'Success') {
+                    currentOrderId = result.orderId;
+                    showQueue(result.queueNumber, result.orderId);
+                    
+                    // Reset
                     cart = {};
                     updateCartUI();
                     bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
                 } else {
-                    throw new Error(res.message);
+                    throw new Error(result.message || 'ส่งออเดอร์ไม่สำเร็จ');
                 }
-            } catch (e) {
-                Swal.fire('ผิดพลาด', e.message, 'error');
+
+            } catch (error) {
+                logDebug('Submit error: ' + error.message);
+                Swal.fire('ผิดพลาด', error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
-        // TRACKING
-        function showTracking(queue, orderId) {
-            document.getElementById('tracking-queue-num').textContent = queue;
-            document.getElementById('tracking-order-id').textContent = orderId;
-            new bootstrap.Modal(document.getElementById('trackingModal')).show();
-            
-            // Start polling
-            const interval = setInterval(async () => {
-                const status = await fetchAPI('getOrderStatus', { orderId });
-                if (status.status === 'เสร็จสิ้น' || status.status === 'ยกเลิก') {
-                    clearInterval(interval);
-                }
-                updateTimelineUI(status.status);
-            }, 10000);
+        function getPaymentText(method) {
+            const map = { cod: 'เงินสดปลายทาง', transfer: 'โอนเงิน', debt: 'ค้างจ่าย' };
+            return map[method] || method;
         }
 
-        function updateTimelineUI(status) {
+        function showQueue(queue, orderId) {
+            document.getElementById('queue-number').textContent = queue;
+            document.getElementById('queue-order-id').textContent = orderId;
+            
+            new bootstrap.Modal(document.getElementById('queueModal')).show();
+            
+            // Start polling status
+            pollStatus(orderId);
+        }
+
+        async function pollStatus(orderId) {
+            try {
+                const data = await fetchAPI('getOrderStatus', { orderId: orderId });
+                if (data.status) {
+                    updateTimeline(data.status);
+                    if (data.status === 'เสร็จสิ้น' || data.status === 'ยกเลิก') return;
+                }
+                setTimeout(() => pollStatus(orderId), 10000);
+            } catch (e) {}
+        }
+
+        function updateTimeline(status) {
             const items = document.querySelectorAll('.timeline-item');
             items.forEach(i => i.classList.remove('active', 'pending'));
             
@@ -680,7 +967,14 @@
             }
         }
 
+        function closeQueue() {
+            bootstrap.Modal.getInstance(document.getElementById('queueModal')).hide();
+            location.reload();
+        }
+
+        // ==========================================
         // STAFF DASHBOARD
+        // ==========================================
         function showStaffDashboard() {
             document.getElementById('staff-dashboard').style.display = 'block';
             refreshDashboard();
@@ -691,35 +985,56 @@
         }
 
         async function refreshDashboard() {
-            const stats = await fetchAPI('getOwnerStats');
-            document.getElementById('stat-today').textContent = stats.todaySales?.toLocaleString() || 0;
-            document.getElementById('stat-orders').textContent = stats.totalOrders || 0;
-            
-            const list = document.getElementById('admin-order-list');
-            if (stats.recentOrders) {
-                list.innerHTML = stats.recentOrders.map(o => `
-                    <div class="card mb-2">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <span class="badge bg-primary">${o.queueNumber}</span>
-                                    <div class="fw-bold">${o.name}</div>
-                                    <small class="text-muted">${o.items}</small>
+            try {
+                const data = await fetchAPI('getOwnerStats');
+                
+                document.getElementById('stat-today').textContent = (data.todaySales || 0).toLocaleString();
+                document.getElementById('stat-orders').textContent = data.totalOrders || 0;
+                
+                const list = document.getElementById('admin-order-list');
+                if (data.recentOrders && data.recentOrders.length > 0) {
+                    list.innerHTML = data.recentOrders.map(o => `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge bg-primary mb-1">${o.queueNumber || '-'}</span>
+                                        <div class="fw-bold">${o.name}</div>
+                                        <small class="text-muted">${o.items?.substring(0, 50)}...</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold">${o.total} ฿</div>
+                                        <span class="badge bg-${o.paymentMethod === 'debt' ? 'warning text-dark' : 'success'}">
+                                            ${o.paymentMethod === 'cod' ? 'เงินสด' : o.paymentMethod === 'transfer' ? 'โอน' : 'ค้าง'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <div class="fw-bold">${o.total} ฿</div>
-                                    <span class="badge bg-${o.paymentMethod === 'debt' ? 'warning' : 'success'}">${o.paymentMethod}</span>
+                                <div class="mt-2">
+                                    <select class="form-select form-select-sm" onchange="updateStatus('${o.OrderID || o['Order ID']}', this.value)">
+                                        <option ${o.Status === 'รอดำเนินการ' ? 'selected' : ''}>รอดำเนินการ</option>
+                                        <option ${o.Status === 'กำลังทำอาหาร' ? 'selected' : ''}>กำลังทำอาหาร</option>
+                                        <option ${o.Status === 'เสร็จสิ้น' ? 'selected' : ''}>เสร็จสิ้น</option>
+                                        <option ${o.Status === 'ยกเลิก' ? 'selected' : ''}>ยกเลิก</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                } else {
+                    list.innerHTML = '<div class="text-center text-muted py-4">ไม่มีรายการ</div>';
+                }
+            } catch (error) {
+                console.error('Dashboard error:', error);
             }
         }
 
-        function openMapModal() {
-            // Placeholder for map modal
-            alert('เปิดแผนที่ (ต้องเชื่อมต่อ Google Maps API)');
+        async function updateStatus(orderId, newStatus) {
+            try {
+                await postAPI({ action: 'updateStatus', orderId: orderId, newStatus: newStatus });
+                Swal.fire({ title: 'อัปเดตแล้ว', icon: 'success', timer: 1000, showConfirmButton: false });
+            } catch (e) {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถอัปเดตได้', 'error');
+            }
         }
     </script>
 </body>
