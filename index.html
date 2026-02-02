@@ -1566,21 +1566,21 @@ async function postAPI(payload) {
                 
                 // เตรียมข้อมูลออเดอร์
                 const orderData = {
-                    action: 'submitOrder',
-                    uid: userProfile.userId || 'guest',
-                    name: name,
-                    phone: phone,
-                    address: address,
-                    items: cartItems.map(item => ({
-                        name: item.product.name,
-                        quantity: item.qty,
-                        price: item.product.price
-                    })),
-                    total: totalPrice,
-                    image: slipBase64.split(',')[1],
-                    mimeType: slipFile.type || 'image/jpeg',
-                    note: 'สั่งผ่านเว็บไซต์'
-                };
+    action: 'submitOrder', // จุดสำคัญ: ต้องมีบรรทัดนี้เพื่อบอกหลังบ้านให้บันทึกข้อมูล
+    uid: userProfile ? userProfile.userId : 'guest',
+    name: name,
+    phone: phone,
+    address: address,
+    items: Object.keys(cart).map(key => ({
+        name: cart[key].product.name,
+        qty: cart[key].qty,
+        price: cart[key].product.price
+    })),
+    total: totalPrice,
+    image: slipBase64.split(',')[1],
+    mimeType: slipFile.type || 'image/jpeg',
+    note: 'สั่งผ่านเว็บไซต์'
+};
                 
                 console.log('Submitting order:', orderData);
                 
