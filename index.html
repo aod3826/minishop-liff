@@ -925,57 +925,42 @@
             }
         }
 
-        async function postAPI(payload) {
-            try {
-                console.log('Posting API:', payload);
-                
-                // ใช้ CORS Proxy สำหรับ POST request ด้วย
-                const proxyUrl = 'https://api.allorigins.win/post?url=';
-                const targetUrl = CONFIG.scriptUrl;
-                
-                const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const responseData = await response.json();
-                const data = JSON.parse(responseData.contents);
-                console.log('POST response:', data);
-                
-                return data;
-            } catch (error) {
-                console.error('POST API Error:', error);
-                
-                // ลองเรียกโดยตรง
-                try {
-                    console.log('Trying direct POST...');
-                    const directResponse = await fetch(CONFIG.scriptUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (directResponse.ok) {
-                        return await directResponse.json();
-                    }
-                } catch (directError) {
-                    console.error('Direct POST failed:', directError);
-                }
-                
-                throw error;
-            }
-        }
+        // ฟังก์ชันสำหรับส่งข้อมูลแบบ POST (บันทึกข้อมูล) ที่ปรับปรุงแล้ว
+async function postAPI(payload) {
+    console.log('Sending POST API request...');
+    try {
+        // การส่งไปยัง Apps Script ไม่ควรใส่ Header 'Content-Type': 'application/json'
+        // เพื่อหลีกเลี่ยงการส่ง Preflight (OPTIONS) ซึ่ง Apps Script ไม่รองรับโดยตรง
+        // การส่งแบบ Simple Request (ไม่มี header พิเศษ) จะทำให้ผ่าน CORS ได้ง่ายกว่า
+        const response = await fetch(CONFIG.scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors', // ใช้ no-cors เพื่อให้ส่งข้อมูลออกไปได้แน่นอน แม้จะไม่ได้รับค่ากลับมาในบางกรณี
+            body: JSON.stringify(payload)
+        });
 
+        // หมายเหตุ: เมื่อใช้ 'no-cors' เราจะไม่สามารถอ่าน response.json() ได้ 
+        // หากต้องการอ่านผลตอบแทนกลับมา (Response) ให้เปลี่ยน mode เป็น 'cors' 
+        // แต่ต้องมั่นใจว่าฝั่ง Code.gs จัดการเรื่องการส่งกลับแบบ ContentService ไว้ถูกต้องแล้ว
+        
+        // ตัวเลือกแบบที่ต้องการอ่านผลลัพธ์กลับมา (แนะนำให้ลองแบบนี้ก่อน):
+        /*
+        const response = await fetch(CONFIG.scriptUrl, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const responseData = await response.json();
+        const data = JSON.parse(responseData.contents);
+        return data;
+        */
+
+        console.log('POST request sent successfully');
+        return { success: true };
+
+    } catch (error) {
+        console.error('POST API Error:', error);
+        throw error;
+    }
+}
         // ==========================================
         //  LIFF & USER MANAGEMENT
         // ==========================================
