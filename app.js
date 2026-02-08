@@ -1,4 +1,4 @@
-/* global CONFIG, google, liff */
+/* global google, liff */
 const state = {
   products: [],
   cart: new Map(),
@@ -6,9 +6,18 @@ const state = {
     shop_lat: 0,
     shop_lng: 0,
     flat_rate: 0,
-    distance_rate: 0,
-    admin_password: ""
+    distance_rate: 0
   },
+  config: {
+    liffId: '',
+    googleMapsKey: '',
+    env: 'dev'
+  },
+  auth: {
+    idToken: '',
+    userId: ''
+  },
+  adminPassword: '',
   selectedCoords: null,
   liffProfile: null
 };
@@ -85,28 +94,40 @@ const showAlert = (title, text, icon = 'info') => {
   });
 };
 
-const callServer = (method, payload) => new Promise((resolve, reject) => {
+const callServer = (method, payload = {}, options = {}) => new Promise((resolve, reject) => {
   if (!google || !google.script || !google.script.run) {
     reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้'));
     return;
   }
+  const request = { ...payload };
+  if (options.authRequired !== false) {
+    if (!state.auth.idToken || !state.auth.userId) {
+      reject(new Error('ยังไม่ได้ยืนยันตัวตน LINE LIFF'));
+      return;
+    }
+    request.auth = { ...state.auth };
+  }
   google.script.run
     .withSuccessHandler(resolve)
-    .withFailureHandler(reject)[method](payload);
+    .withFailureHandler(reject)[method](request);
 });
 
 const initLiff = async () => {
-  if (!CONFIG.liffId || CONFIG.liffId === 'YOUR_LIFF_ID') {
+  if (!state.config.liffId) {
     return;
   }
   try {
-    await liff.init({ liffId: CONFIG.liffId });
+    await liff.init({ liffId: state.config.liffId });
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
     const profile = await liff.getProfile();
     state.liffProfile = profile;
+    state.auth = {
+      idToken: liff.getIDToken(),
+      userId: profile.userId
+    };
     elements.profileName.textContent = profile.displayName;
     elements.profileId.textContent = `LINE ID: ${profile.userId}`;
     elements.profileImage.src = profile.pictureUrl;
@@ -118,7 +139,7 @@ const initLiff = async () => {
 };
 
 const loadMapsScript = () => new Promise((resolve, reject) => {
-  if (!CONFIG.googleMapsKey || CONFIG.googleMapsKey === 'YOUR_GOOGLE_MAPS_KEY') {
+  if (!state.config.googleMapsKey) {
     reject(new Error('ยังไม่ได้ตั้งค่า Google Maps Key'));
     return;
   }
@@ -127,12 +148,21 @@ const loadMapsScript = () => new Promise((resolve, reject) => {
     return;
   }
   const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.googleMapsKey}&libraries=places`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${state.config.googleMapsKey}&libraries=places`;
   script.async = true;
   script.onload = resolve;
   script.onerror = () => reject(new Error('โหลดแผนที่ไม่สำเร็จ'));
   document.head.appendChild(script);
 });
+
+const loadPublicConfig = async () => {
+  const config = await callServer('getPublicConfig', {}, { authRequired: false });
+  state.config = {
+    liffId: config.liffId || '',
+    googleMapsKey: config.googleMapsKey || '',
+    env: config.env || 'dev'
+  };
+};
 
 const renderProducts = (products) => {
   if (!products.length) {
@@ -433,7 +463,11 @@ const initAdminDashboard = () => {
 };
 
 const loadOrders = async () => {
-  const orders = await callServer('getOrders');
+  if (!state.adminPassword) {
+    showAlert('สิทธิ์ไม่เพียงพอ', 'กรุณาเข้าสู่ระบบผู้ดูแลก่อน', 'warning');
+    return;
+  }
+  const orders = await callServer('getOrders', { admin_password: state.adminPassword });
   elements.adminOrderList.innerHTML = orders.length
     ? orders.map((order) => `
       <div class="rounded-xl border border-slate-100 p-3">
@@ -458,14 +492,24 @@ const handleAdminLogin = async () => {
     showAlert('รหัสผ่านไม่ถูกต้อง', 'กรุณากรอกรหัสผ่าน', 'warning');
     return;
   }
-  if (elements.adminPassword.value.trim() !== state.settings.admin_password) {
-    showAlert('รหัสผ่านไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
-    return;
+  try {
+    showLoading('กำลังตรวจสอบสิทธิ์...');
+    const password = elements.adminPassword.value.trim();
+    const result = await callServer('verifyAdminLogin', { password });
+    hideLoading();
+    if (!result.success) {
+      showAlert('รหัสผ่านไม่ถูกต้อง', result.message || 'กรุณาลองใหม่อีกครั้ง', 'error');
+      return;
+    }
+    state.adminPassword = password;
+    elements.adminLogin.classList.add('hidden');
+    elements.adminDashboard.classList.remove('hidden');
+    initAdminDashboard();
+    await loadOrders();
+  } catch (error) {
+    hideLoading();
+    showAlert('เกิดข้อผิดพลาด', error.message, 'error');
   }
-  elements.adminLogin.classList.add('hidden');
-  elements.adminDashboard.classList.remove('hidden');
-  initAdminDashboard();
-  await loadOrders();
 };
 
 const saveSettings = async () => {
@@ -476,12 +520,19 @@ const saveSettings = async () => {
       shop_lng: Number(elements.settingLng.value),
       flat_rate: Number(elements.settingFlat.value),
       distance_rate: Number(elements.settingDistance.value),
-      admin_password: elements.settingPassword.value || state.settings.admin_password
+      admin_password: state.adminPassword,
+      new_admin_password: elements.settingPassword.value.trim() || ''
     };
     const result = await callServer('updateSettings', payload);
     hideLoading();
     if (result.success) {
-      state.settings = { ...state.settings, ...payload };
+      state.settings = {
+        ...state.settings,
+        shop_lat: payload.shop_lat,
+        shop_lng: payload.shop_lng,
+        flat_rate: payload.flat_rate,
+        distance_rate: payload.distance_rate
+      };
       showToast('บันทึกการตั้งค่าเรียบร้อย');
     } else {
       showAlert('บันทึกไม่สำเร็จ', result.message, 'error');
@@ -494,7 +545,11 @@ const saveSettings = async () => {
 
 const updateProductAvailability = async (productId, isAvailable) => {
   try {
-    await callServer('updateProductAvailability', { id: productId, is_available: isAvailable });
+    await callServer('updateProductAvailability', {
+      id: productId,
+      is_available: isAvailable,
+      admin_password: state.adminPassword
+    });
     showToast('อัปเดตสินค้าเรียบร้อย');
   } catch (error) {
     showAlert('เกิดข้อผิดพลาด', error.message, 'error');
@@ -518,7 +573,11 @@ const updateOrderStatus = async (orderId) => {
   if (!value) return;
   try {
     showLoading('กำลังอัปเดตสถานะ...');
-    const result = await callServer('updateOrderStatus', { order_id: orderId, status: value });
+    const result = await callServer('updateOrderStatus', {
+      order_id: orderId,
+      status: value,
+      admin_password: state.adminPassword
+    });
     hideLoading();
     if (result.success) {
       showToast('อัปเดตสถานะเรียบร้อย');
@@ -633,7 +692,17 @@ const attachEvents = () => {
 
 const init = async () => {
   attachEvents();
+  try {
+    await loadPublicConfig();
+  } catch (error) {
+    showAlert('ตั้งค่าไม่ครบ', error.message, 'error');
+    return;
+  }
   await initLiff();
+  if (!state.auth.idToken || !state.auth.userId) {
+    showAlert('ยังไม่ได้ยืนยันตัวตน', 'กรุณาเปิดผ่าน LINE LIFF', 'warning');
+    return;
+  }
   await initData();
 };
 

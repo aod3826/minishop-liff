@@ -10,12 +10,78 @@ const HEADERS = {
   settings: ['shop_lat', 'shop_lng', 'flat_rate', 'distance_rate', 'admin_password']
 };
 
-const CONFIG = {
+const APP = {
   thunderApiUrl: 'https://api.thundersolution.com/verify-slip',
-  thunderApiKey: 'YOUR_THUNDER_API_KEY',
   lineNotifyUrl: 'https://notify-api.line.me/api/notify',
-  lineNotifyToken: 'YOUR_LINE_NOTIFY_TOKEN'
+  lineVerifyUrl: 'https://api.line.me/oauth2/v2.1/verify'
 };
+
+const ENV_KEYS = {
+  LIFF_ID: 'LIFF_ID',
+  GOOGLE_MAPS_KEY: 'GOOGLE_MAPS_KEY',
+  LINE_CHANNEL_ID: 'LINE_CHANNEL_ID',
+  THUNDER_API_KEY: 'THUNDER_API_KEY',
+  LINE_NOTIFY_TOKEN: 'LINE_NOTIFY_TOKEN'
+};
+
+function getEnv() {
+  return (PropertiesService.getScriptProperties().getProperty('APP_ENV') || 'dev').toLowerCase();
+}
+
+function getEnvProperty(baseKey) {
+  const envSuffix = getEnv().toUpperCase();
+  return PropertiesService.getScriptProperties().getProperty(`${baseKey}_${envSuffix}`) || '';
+}
+
+function getPublicConfig() {
+  return {
+    liffId: getEnvProperty(ENV_KEYS.LIFF_ID),
+    googleMapsKey: getEnvProperty(ENV_KEYS.GOOGLE_MAPS_KEY),
+    env: getEnv()
+  };
+}
+
+function assertAuth(payload) {
+  if (!payload || !payload.auth || !payload.auth.idToken || !payload.auth.userId) {
+    return { ok: false, message: 'ต้องยืนยันตัวตนผ่าน LINE LIFF' };
+  }
+  return verifyLiffToken(payload.auth.idToken, payload.auth.userId);
+}
+
+function assertAdmin(payload) {
+  const auth = assertAuth(payload);
+  if (!auth.ok) return auth;
+  const settings = getSettingsInternal();
+  if (!payload.admin_password || payload.admin_password !== settings.admin_password) {
+    return { ok: false, message: 'รหัสผ่านผู้ดูแลไม่ถูกต้อง' };
+  }
+  return { ok: true };
+}
+
+function verifyLiffToken(idToken, userId) {
+  const channelId = getEnvProperty(ENV_KEYS.LINE_CHANNEL_ID);
+  if (!channelId) {
+    return { ok: false, message: 'ยังไม่ได้ตั้งค่า LINE Channel ID' };
+  }
+  try {
+    const response = UrlFetchApp.fetch(APP.lineVerifyUrl, {
+      method: 'post',
+      contentType: 'application/x-www-form-urlencoded',
+      payload: `id_token=${encodeURIComponent(idToken)}&client_id=${encodeURIComponent(channelId)}`,
+      muteHttpExceptions: true
+    });
+    const result = JSON.parse(response.getContentText());
+    if (response.getResponseCode() !== 200 || !result.sub) {
+      return { ok: false, message: 'ไม่สามารถยืนยันตัวตน LINE ได้' };
+    }
+    if (result.sub !== userId) {
+      return { ok: false, message: 'ข้อมูลผู้ใช้ไม่ตรงกัน' };
+    }
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: 'ตรวจสอบตัวตนล้มเหลว' };
+  }
+}
 
 function doGet() {
   return HtmlService.createTemplateFromFile('index')
@@ -49,14 +115,28 @@ function setupSheet(spreadsheet, name, headers) {
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 }
 
-function getProducts() {
+function getProducts(payload) {
+  const auth = assertAuth(payload);
+  if (!auth.ok) throw new Error(auth.message);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.PRODUCTS);
   const values = sheet.getDataRange().getValues();
   const headers = values.shift();
   return values.map((row) => mapRow(headers, row));
 }
 
-function getSettings() {
+function getSettings(payload) {
+  const auth = assertAuth(payload);
+  if (!auth.ok) throw new Error(auth.message);
+  const settings = getSettingsInternal();
+  return {
+    shop_lat: settings.shop_lat,
+    shop_lng: settings.shop_lng,
+    flat_rate: settings.flat_rate,
+    distance_rate: settings.distance_rate
+  };
+}
+
+function getSettingsInternal() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.SETTINGS);
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) {
@@ -73,7 +153,22 @@ function getSettings() {
   return mapRow(headers, row);
 }
 
+function verifyAdminLogin(payload) {
+  const auth = assertAuth(payload);
+  if (!auth.ok) throw new Error(auth.message);
+  if (!payload || !payload.password) {
+    return { success: false, message: 'กรุณากรอกรหัสผ่าน' };
+  }
+  const settings = getSettingsInternal();
+  if (payload.password !== settings.admin_password) {
+    return { success: false, message: 'รหัสผ่านไม่ถูกต้อง' };
+  }
+  return { success: true };
+}
+
 function submitOrder(payload) {
+  const auth = assertAuth(payload);
+  if (!auth.ok) throw new Error(auth.message);
   const validation = validateOrderPayload(payload);
   if (!validation.valid) {
     return { success: false, message: validation.message };
@@ -123,14 +218,18 @@ function validateOrderPayload(payload) {
 }
 
 function verifySlip(base64, mimeType) {
+  const thunderApiKey = getEnvProperty(ENV_KEYS.THUNDER_API_KEY);
+  if (!thunderApiKey) {
+    return { success: false, message: 'ยังไม่ได้ตั้งค่า Thunder API Key' };
+  }
   try {
-    const response = UrlFetchApp.fetch(CONFIG.thunderApiUrl, {
+    const response = UrlFetchApp.fetch(APP.thunderApiUrl, {
       method: 'post',
       contentType: 'application/json',
       payload: JSON.stringify({
         image: base64,
         mimeType,
-        apiKey: CONFIG.thunderApiKey
+        apiKey: thunderApiKey
       }),
       muteHttpExceptions: true
     });
@@ -161,7 +260,8 @@ function isDuplicateTransaction(sheet, transRef) {
 }
 
 function sendLineNotify(orderId, payload, slipCheck) {
-  if (!CONFIG.lineNotifyToken || CONFIG.lineNotifyToken === 'YOUR_LINE_NOTIFY_TOKEN') {
+  const lineNotifyToken = getEnvProperty(ENV_KEYS.LINE_NOTIFY_TOKEN);
+  if (!lineNotifyToken) {
     return;
   }
   const message = [
@@ -172,10 +272,10 @@ function sendLineNotify(orderId, payload, slipCheck) {
     `อ้างอิงสลิป: ${slipCheck.transRef}`
   ].join('\n');
 
-  UrlFetchApp.fetch(CONFIG.lineNotifyUrl, {
+  UrlFetchApp.fetch(APP.lineNotifyUrl, {
     method: 'post',
     headers: {
-      Authorization: `Bearer ${CONFIG.lineNotifyToken}`
+      Authorization: `Bearer ${lineNotifyToken}`
     },
     payload: {
       message
@@ -184,6 +284,8 @@ function sendLineNotify(orderId, payload, slipCheck) {
 }
 
 function updateOrderStatus(payload) {
+  const admin = assertAdmin(payload);
+  if (!admin.ok) throw new Error(admin.message);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.ORDERS);
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
@@ -196,6 +298,8 @@ function updateOrderStatus(payload) {
 }
 
 function updateProductAvailability(payload) {
+  const admin = assertAdmin(payload);
+  if (!admin.ok) throw new Error(admin.message);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.PRODUCTS);
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
@@ -208,18 +312,24 @@ function updateProductAvailability(payload) {
 }
 
 function updateSettings(payload) {
+  const admin = assertAdmin(payload);
+  if (!admin.ok) throw new Error(admin.message);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.SETTINGS);
+  const current = getSettingsInternal();
+  const adminPassword = payload.new_admin_password || current.admin_password;
   sheet.getRange(2, 1, 1, HEADERS.settings.length).setValues([[
     payload.shop_lat,
     payload.shop_lng,
     payload.flat_rate,
     payload.distance_rate,
-    payload.admin_password
+    adminPassword
   ]]);
   return { success: true };
 }
 
-function getOrders() {
+function getOrders(payload) {
+  const admin = assertAdmin(payload);
+  if (!admin.ok) throw new Error(admin.message);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS.ORDERS);
   const values = sheet.getDataRange().getValues();
   const headers = values.shift();
