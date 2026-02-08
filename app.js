@@ -19,7 +19,8 @@ const state = {
   },
   adminPassword: '',
   selectedCoords: null,
-  liffProfile: null
+  liffProfile: null,
+  isLocal: false
 };
 
 const elements = {
@@ -63,7 +64,66 @@ const elements = {
 let map;
 let marker;
 
+const localDemo = {
+  products: [
+    {
+      id: 'demo-1',
+      name: 'กาแฟลาเต้เย็น',
+      price: 55,
+      stock: 20,
+      is_available: true,
+      image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=600&auto=format&fit=crop',
+      category: 'เครื่องดื่ม'
+    },
+    {
+      id: 'demo-2',
+      name: 'ครัวซองต์เนยสด',
+      price: 65,
+      stock: 12,
+      is_available: true,
+      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600&auto=format&fit=crop',
+      category: 'เบเกอรี่'
+    },
+    {
+      id: 'demo-3',
+      name: 'น้ำส้มคั้นสด',
+      price: 45,
+      stock: 0,
+      is_available: false,
+      image: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?q=80&w=600&auto=format&fit=crop',
+      category: 'เครื่องดื่ม'
+    }
+  ],
+  settings: {
+    shop_lat: 13.7563,
+    shop_lng: 100.5018,
+    flat_rate: 30,
+    distance_rate: 10
+  }
+};
+
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('th-TH')} ฿`;
+
+const resolveLocalCall = (method) => {
+  switch (method) {
+    case 'getPublicConfig':
+      return { liffId: '', googleMapsKey: '', env: 'local' };
+    case 'getProducts':
+      return localDemo.products;
+    case 'getSettings':
+      return localDemo.settings;
+    case 'submitOrder':
+      return { success: false, message: 'โหมดตัวอย่างยังไม่รองรับการสั่งซื้อ' };
+    case 'verifyAdminLogin':
+      return { success: false, message: 'โหมดตัวอย่างยังไม่รองรับการจัดการผู้ดูแล' };
+    case 'updateSettings':
+    case 'updateOrderStatus':
+    case 'updateProductAvailability':
+      return { success: false, message: 'โหมดตัวอย่างยังไม่รองรับการแก้ไขข้อมูล' };
+    default:
+      throw new Error('โหมดตัวอย่างยังไม่รองรับฟังก์ชันนี้');
+  }
+};
 
 const showLoading = (message = 'กำลังโหลดข้อมูล...') => {
   elements.loadingOverlay.querySelector('p').textContent = message;
@@ -95,8 +155,13 @@ const showAlert = (title, text, icon = 'info') => {
 };
 
 const callServer = (method, payload = {}, options = {}) => new Promise((resolve, reject) => {
-  if (!google || !google.script || !google.script.run) {
-    reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้'));
+  const gasRunner = window.google && window.google.script && window.google.script.run;
+  if (!gasRunner) {
+    try {
+      resolve(resolveLocalCall(method));
+    } catch (error) {
+      reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้ กรุณาเปิดผ่าน Web App หรือ LINE LIFF'));
+    }
     return;
   }
   const request = { ...payload };
@@ -107,9 +172,7 @@ const callServer = (method, payload = {}, options = {}) => new Promise((resolve,
     }
     request.auth = { ...state.auth };
   }
-  google.script.run
-    .withSuccessHandler(resolve)
-    .withFailureHandler(reject)[method](request);
+  gasRunner.withSuccessHandler(resolve).withFailureHandler(reject)[method](request);
 });
 
 const initLiff = async () => {
@@ -162,6 +225,10 @@ const loadPublicConfig = async () => {
     googleMapsKey: config.googleMapsKey || '',
     env: config.env || 'dev'
   };
+  state.isLocal = state.config.env === 'local';
+  if (state.isLocal) {
+    showAlert('โหมดตัวอย่าง', 'ระบบกำลังทำงานในโหมดตัวอย่าง โปรดเปิดผ่าน Web App หรือ LINE LIFF เพื่อใช้งานจริง', 'info');
+  }
 };
 
 const renderProducts = (products) => {
@@ -699,7 +766,7 @@ const init = async () => {
     return;
   }
   await initLiff();
-  if (!state.auth.idToken || !state.auth.userId) {
+  if (!state.isLocal && (!state.auth.idToken || !state.auth.userId)) {
     showAlert('ยังไม่ได้ยืนยันตัวตน', 'กรุณาเปิดผ่าน LINE LIFF', 'warning');
     return;
   }
