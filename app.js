@@ -95,8 +95,9 @@ const showAlert = (title, text, icon = 'info') => {
 };
 
 const callServer = (method, payload = {}, options = {}) => new Promise((resolve, reject) => {
-  if (!google || !google.script || !google.script.run) {
-    reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้'));
+  const gasRunner = window.google && window.google.script && window.google.script.run;
+  if (!gasRunner) {
+    reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้ กรุณาเปิดผ่าน Web App หรือ LINE LIFF'));
     return;
   }
   const request = { ...payload };
@@ -107,9 +108,7 @@ const callServer = (method, payload = {}, options = {}) => new Promise((resolve,
     }
     request.auth = { ...state.auth };
   }
-  google.script.run
-    .withSuccessHandler(resolve)
-    .withFailureHandler(reject)[method](request);
+  gasRunner.withSuccessHandler(resolve).withFailureHandler(reject)[method](request);
 });
 
 const initLiff = async () => {
