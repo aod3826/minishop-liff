@@ -4,7 +4,7 @@
 โดยแยก config/secret ออกจากฝั่ง frontend เพื่อความปลอดภัยและรองรับหลาย environment
 
 ## โครงสร้างระบบ
-- **Frontend (LIFF)**: `index.html`, `app.js`, `style.css`
+- **Frontend (LIFF)**: `index.html`, `app.html`, `style.html`
 - **Backend (GAS)**: `Code.gs`
 - **Database**: Google Sheets (ชีต `products`, `orders`, `store_settings`)
 
